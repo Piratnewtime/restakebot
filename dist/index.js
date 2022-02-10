@@ -117,7 +117,7 @@ function processWallet(wallet) {
         const allRewards = yield wallet.rewards();
         const rewards = wallet.filterRewards(allRewards);
         if (rewards.length) {
-            console.info(wTab + cli_color_1.default.greenBright(`Rewards found -> build restake`));
+            console.info(wTab + cli_color_1.default.greenBright(`Rewards are found -> build restake`));
             const summaryList = wallet.summaryRewards(rewards);
             let notice = null;
             if (bot) {
@@ -169,12 +169,12 @@ function processWallet(wallet) {
             }
         }
         else if (allRewards.length) {
-            console.info(wTab + 'Rewards found, but these are not enough for triggers');
+            console.info(wTab + 'Rewards are found, but these are not enough for triggers');
             const summaryList = wallet.summaryRewards(allRewards);
             summaryList.forEach(row => console.info(wTab + cli_color_1.default.italic(row)));
         }
         else {
-            console.info(wTab + 'Rewards aren\'t found');
+            console.info(wTab + 'No rewards');
         }
         console.log(wTab + cli_color_1.default.italic('Done ' + cli_color_1.default.blueBright(wallet.address)), cli_color_1.default.italic(new Date().toISOString()));
         notices.delete(wallet);

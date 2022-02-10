@@ -110,7 +110,7 @@ class Notice {
                 break;
         }
         text += `<b>#${this.wallet.network.toUpperCase()} #${this.status.toUpperCase()}</b>\n`;
-        text += `<code>${this.wallet.config.address}</code>\n`;
+        text += `<code><tg-spoiler>${this.wallet.config.address}</tg-spoiler></code>\n`;
         text += `Balance: ${this.balance}\n`;
         if (this.rewards.length) {
             text += '\n<b>Rewards:</b>\n';
@@ -120,7 +120,7 @@ class Notice {
             text += '\n<b>Transaction:</b>\n';
             text += `Fee: ${this.fee} (gas: ${this.gas})\n`;
             if (this.txhash)
-                text += `Hash: <code>${this.txhash}</code>\n`;
+                text += `Hash: <code><tg-spoiler>${this.txhash}</tg-spoiler></code>\n`;
             if (this.pending_time)
                 text += `Pending time: 🕒 <b>${parseFloat((this.pending_time / 60000).toFixed(5))} min</b>`;
         }

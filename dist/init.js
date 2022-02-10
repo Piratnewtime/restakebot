@@ -78,7 +78,7 @@ const presets = {
         nativeDenom: 'uatom',
     },
     secret: {
-        host: 'https://lcd-secret.keplr.app',
+        host: 'https://api-secret.citadel.one',
         gasPrice: 0.15,
         nativeDenom: 'uscrt',
     },
