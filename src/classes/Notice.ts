@@ -28,7 +28,11 @@ const links: { [network: string]: { address: string, tx: string } } = {
     tx: 'https://www.mintscan.io/comdex/txs/'
   },
   bsc_xct: {
-    address: 'https://bscscan.com/address/',
+    address: 'https://bscscan.com/token/0xe8670901e86818745b28c8b30b17986958fce8cc?a=',
+    tx: 'https://bscscan.com/tx/'
+  },
+  bsc_xct_team: {
+    address: 'https://bscscan.com/token/0xe8670901e86818745b28c8b30b17986958fce8cc?a=',
     tx: 'https://bscscan.com/tx/'
   }
 };
@@ -112,7 +116,7 @@ export default class Notice {
         break;
 		}
 		text += `<b>#${this.wallet.network.toUpperCase()} #${this.status.toUpperCase()}</b>\n`;
-    text += `<code><tg-spoiler>${this.wallet.config.address}</tg-spoiler></code>\n`;
+    text += `<tg-spoiler><b>${this.wallet.config.address}</b></tg-spoiler>\n`;
     text += `Balance: ${this.balance}\n`;
 
     if (this.rewards.length) {
@@ -123,7 +127,7 @@ export default class Notice {
     if (this.status !== NoticeStatus.Initialised) {
       text += '\n<b>Transaction:</b>\n';
       text += `Fee: ${this.fee} (gas: ${this.gas})\n`;
-      if (this.txhash) text += `Hash: <code><tg-spoiler>${this.txhash}</tg-spoiler></code>\n`;
+      if (this.txhash) text += `Hash: <tg-spoiler><b>${this.txhash}</b></tg-spoiler>\n`;
       if (this.pending_time) text += `Pending time: 🕒 <b>${parseFloat((this.pending_time / 60000).toFixed(5))} min</b>`;
     }
 
