@@ -83,7 +83,7 @@ const presets: preset = {
 	},
 	secret: {
 		host: 'https://lcd-secret.keplr.app',
-		gasPrice: 0.01,
+		gasPrice: 0.15,
 		nativeDenom: 'uscrt',
 	},
 	akash: {
