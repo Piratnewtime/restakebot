@@ -25,18 +25,23 @@ class CosmosV1 extends Wallet_1.default {
     }
     rewards() {
         return __awaiter(this, void 0, void 0, function* () {
-            return (yield axios_1.default.get(`${this.host}/cosmos/distribution/v1beta1/delegators/${this.address}/rewards`, { timeout: 20000 })).data.rewards;
+            let list = (yield axios_1.default.get(`${this.host}/cosmos/distribution/v1beta1/delegators/${this.address}/rewards`, { timeout: 20000 })).data.rewards;
+            list = list.filter(pack => !!pack.reward.length);
+            return list;
         });
     }
     filterRewards(rewards) {
         if (!this.triggers.length)
             return [];
         return rewards.filter(pack => {
-            pack.reward = pack.reward.filter(i => {
+            const reward = pack.reward.filter(i => {
                 const trigger = this.triggers.find(t => t.denom === i.denom);
                 return trigger && parseInt(i.amount) >= trigger.amount;
             });
-            return pack.reward.length > 0;
+            if (!reward.length)
+                return false;
+            pack.reward = reward;
+            return true;
         });
     }
     summaryRewards(rewards) {

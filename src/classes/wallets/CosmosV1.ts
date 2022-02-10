@@ -12,17 +12,21 @@ export class CosmosV1 extends Wallet implements IWallet {
 	}
 
 	async rewards (): Promise<cosmos_rewards> {
-		return (await axios.get(`${this.host}/cosmos/distribution/v1beta1/delegators/${this.address}/rewards`, { timeout: 20000 })).data.rewards;
+		let list: cosmos_rewards = (await axios.get(`${this.host}/cosmos/distribution/v1beta1/delegators/${this.address}/rewards`, { timeout: 20000 })).data.rewards;
+    list = list.filter(pack => !!pack.reward.length);
+    return list;
 	}
 
 	filterRewards (rewards: cosmos_rewards): cosmos_rewards {
 		if (!this.triggers.length) return [];
 		return rewards.filter(pack => {
-      pack.reward = pack.reward.filter(i => {
+      const reward = pack.reward.filter(i => {
         const trigger = this.triggers.find(t => t.denom === i.denom);
         return trigger && parseInt(i.amount) >= trigger.amount;
       });
-      return pack.reward.length > 0;
+      if (!reward.length) return false;
+      pack.reward = reward;
+      return true;
 		});
 	}
 
@@ -248,10 +252,6 @@ export class CosmosV1 extends Wallet implements IWallet {
 
 type account = {
   address: string,
-  pub_key: {
-    '@type': string,
-    key: string
-  },
   account_number: string,
   sequence: string
 }

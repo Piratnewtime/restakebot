@@ -61,7 +61,14 @@ profileData.wallets.forEach((w, index) => {
 	switch (w.network) {
 		case 'cosmos':
 		case 'secret':
+		case 'akash':
+		case 'band':
+		case 'comdex':
 			wallet = new modules.CosmosV1(w, secret);
+			break;
+		case 'osmosis':
+		case 'kava':
+			wallet = new modules.Osmosis(w, secret);
 			break;
 		case 'bsc_xct':
 			wallet = new modules.Bsc_xct(w, secret);
@@ -88,8 +95,8 @@ const wTab = '      ';
 
 async function processWallet(wallet: IWallet): Promise<void> {
 	console.log('Check ' + clc.blue(wallet.address), new Date().toISOString());
-	let rewards = await wallet.rewards();
-	rewards = wallet.filterRewards(rewards);
+	const allRewards = await wallet.rewards();
+	const rewards = wallet.filterRewards(allRewards);
 	if (rewards.length) {
 		console.info(wTab + clc.greenBright(`Rewards found -> build restake`));
 		const summaryList = wallet.summaryRewards(rewards);
@@ -134,6 +141,12 @@ async function processWallet(wallet: IWallet): Promise<void> {
 			console.info(wTab + clc.yellowBright(errorText));
 			if (notice) await notice.setError(errorText).send();
 		}
+	} else if (allRewards.length) {
+		console.info(wTab + 'Rewards found, but these are not enough for triggers');
+		const summaryList = wallet.summaryRewards(allRewards);
+		summaryList.forEach(row => console.info(wTab + clc.italic(row)));
+	} else {
+		console.info(wTab + 'Rewards aren\'t found');
 	}
 	console.log(wTab + clc.italic('Done ' + clc.blueBright(wallet.address)), clc.italic(new Date().toISOString()));
 	notices.delete(wallet);

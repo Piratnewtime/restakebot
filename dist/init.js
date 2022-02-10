@@ -79,26 +79,26 @@ const presets = {
     },
     secret: {
         host: 'https://lcd-secret.keplr.app',
-        gasPrice: 0.01,
+        gasPrice: 0.15,
         nativeDenom: 'uscrt',
     },
     akash: {
-        host: 'https://lcd-cosmos.cosmostation.io',
+        host: 'https://lcd-akash.cosmostation.io',
         gasPrice: 0.01,
         nativeDenom: 'uakt',
     },
     kava: {
-        host: 'https://lcd-cosmos.cosmostation.io',
+        host: 'https://lcd-kava.cosmostation.io',
         gasPrice: 0.01,
         nativeDenom: 'ukava',
     },
     osmosis: {
-        host: 'https://lcd-cosmos.cosmostation.io',
+        host: 'https://lcd-osmosis.cosmostation.io',
         gasPrice: 0.01,
         nativeDenom: 'uosmo',
     },
     comdex: {
-        host: 'https://lcd-cosmos.cosmostation.io',
+        host: 'https://lcd-comdex.cosmostation.io',
         gasPrice: 0.01,
         nativeDenom: 'uosmo',
     },

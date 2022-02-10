@@ -11,5 +11,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./CosmosV1"), exports);
+__exportStar(require("./Osmosis"), exports);
 __exportStar(require("./Bsc_xct"), exports);
 //# sourceMappingURL=index.js.map

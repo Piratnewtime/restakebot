@@ -50,7 +50,7 @@ class Bsc_xct extends Wallet_1.default {
     }
     summaryRewards(rewards) {
         const list = [
-            'Claimable - ' + rewards[0]
+            rewards[0] + ' XCT'
         ];
         return list;
     }

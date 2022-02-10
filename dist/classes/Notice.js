@@ -16,8 +16,24 @@ const links = {
         tx: 'https://www.mintscan.io/cosmos/txs/'
     },
     secret: {
-        address: 'https://www.mintscan.io/secret/account/',
+        address: 'https://secretnodes.com/secret/chains/secret-4/accounts/',
         tx: 'https://www.mintscan.io/secret/txs/'
+    },
+    osmosis: {
+        address: 'https://www.mintscan.io/osmosis/account/',
+        tx: 'https://www.mintscan.io/osmosis/txs/'
+    },
+    akash: {
+        address: 'https://www.mintscan.io/akash/account/',
+        tx: 'https://www.mintscan.io/akash/txs/'
+    },
+    kava: {
+        address: 'https://www.mintscan.io/kava/account/',
+        tx: 'https://www.mintscan.io/kava/txs/'
+    },
+    comdex: {
+        address: 'https://www.mintscan.io/comdex/account/',
+        tx: 'https://www.mintscan.io/comdex/txs/'
     },
     bsc_xct: {
         address: 'https://bscscan.com/address/',
