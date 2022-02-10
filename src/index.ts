@@ -98,7 +98,7 @@ async function processWallet(wallet: IWallet): Promise<void> {
 	const allRewards = await wallet.rewards();
 	const rewards = wallet.filterRewards(allRewards);
 	if (rewards.length) {
-		console.info(wTab + clc.greenBright(`Rewards found -> build restake`));
+		console.info(wTab + clc.greenBright(`Rewards are found -> build restake`));
 		const summaryList = wallet.summaryRewards(rewards);
 
 		let notice: Notice | null = null;
@@ -142,11 +142,11 @@ async function processWallet(wallet: IWallet): Promise<void> {
 			if (notice) await notice.setError(errorText).send();
 		}
 	} else if (allRewards.length) {
-		console.info(wTab + 'Rewards found, but these are not enough for triggers');
+		console.info(wTab + 'Rewards are found, but these are not enough for triggers');
 		const summaryList = wallet.summaryRewards(allRewards);
 		summaryList.forEach(row => console.info(wTab + clc.italic(row)));
 	} else {
-		console.info(wTab + 'Rewards aren\'t found');
+		console.info(wTab + 'No rewards');
 	}
 	console.log(wTab + clc.italic('Done ' + clc.blueBright(wallet.address)), clc.italic(new Date().toISOString()));
 	notices.delete(wallet);

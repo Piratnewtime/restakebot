@@ -1,5 +1,4 @@
-import axios, { AxiosError } from "axios";
-import BigNumber from "bignumber.js";
+import axios from "axios";
 import { CosmosV1 } from "./CosmosV1";
 import { coin } from "../../types/coin";
 import { cosmos_rewards } from "../../types/cosmos_rewards";
