@@ -94,6 +94,9 @@ profileData.wallets.forEach((w, index) => {
         case 'bsc_xct':
             wallet = new modules.Bsc_xct(w, secret);
             break;
+        case 'bsc_xct_team':
+            wallet = new modules.Bsc_xct_team(w, secret);
+            break;
         default:
             return;
     }

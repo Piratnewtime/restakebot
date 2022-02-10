@@ -10,7 +10,7 @@ const TokenLockerAbi = require('./abis/TokenLocker.json');
 const RewardingAbi = require('./abis/Rewarding.json');
 
 export class Bsc_xct extends Wallet implements IWallet {
-  protected web3: Web3 | null = null;
+  protected web3: Web3 = new Web3();
   protected TokenLocker: any = null;
   protected Rewarding: any = null;
 

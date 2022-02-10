@@ -23,7 +23,7 @@ class Bsc_xct extends Wallet_1.default {
         super(w, secret);
         this.w = w;
         this.secret = secret;
-        this.web3 = null;
+        this.web3 = new web3_1.default();
         this.TokenLocker = null;
         this.Rewarding = null;
         this.web3 = new web3_1.default(w.config.host);
