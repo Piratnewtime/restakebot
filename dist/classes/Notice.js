@@ -42,6 +42,10 @@ const links = {
     bsc_xct_team: {
         address: 'https://bscscan.com/token/0xe8670901e86818745b28c8b30b17986958fce8cc?a=',
         tx: 'https://bscscan.com/tx/'
+    },
+    bsc_xct_autostake: {
+        address: 'https://bscscan.com/token/0xe8670901e86818745b28c8b30b17986958fce8cc?a=',
+        tx: 'https://bscscan.com/tx/'
     }
 };
 var NoticeStatus;

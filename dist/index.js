@@ -97,6 +97,9 @@ profileData.wallets.forEach((w, index) => {
         case 'bsc_xct_team':
             wallet = new modules.Bsc_xct_team(w, secret);
             break;
+        case 'bsc_xct_autostake':
+            wallet = new modules.Bsc_xct_autostake(w, secret);
+            break;
         default:
             return;
     }
