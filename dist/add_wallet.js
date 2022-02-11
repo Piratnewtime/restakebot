@@ -1,29 +1,12 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs_1 = __importDefault(require("fs"));
 const cli_color_1 = __importDefault(require("cli-color"));
-const node_telegram_bot_api_1 = __importDefault(require("node-telegram-bot-api"));
-const uuid_1 = __importDefault(require("uuid"));
 const Password_1 = __importDefault(require("./classes/protection/Password"));
 const Questionnaire_1 = require("./classes/Questionnaire");
-const workDir = process.cwd();
-const data = {
-    wallets: [],
-    interval: 3600,
-    telegram: undefined
-};
 function askWithRetry(clb, attempts = 3) {
     do {
         try {
@@ -37,40 +20,33 @@ function askWithRetry(clb, attempts = 3) {
     if (attempts < 1)
         console.log('Goodbye'), process.exit(1);
 }
-/** STEP 1: Setup main password */
-let pass = askWithRetry(() => {
-    const res = (0, Questionnaire_1.askSecret)('Set-up your password');
-    if (res.length < 6)
-        throw 'Your password should contain minimum 6 symbols';
-    return res;
-});
-askWithRetry(() => {
-    const res = (0, Questionnaire_1.askSecret)('Repeat your password');
-    if (pass !== res)
-        throw 'Passwords don\'t match';
-});
-console.log(cli_color_1.default.bgYellow(cli_color_1.default.black('   All Right! Let\'s begin!   ')));
-const password = new Password_1.default(pass);
-/** STEP 2: file name */
-console.log(cli_color_1.default.bgYellow(cli_color_1.default.black('   Let\'s imagin name for your config file   ')));
-const [file, userFile] = askWithRetry(() => {
+const workDir = process.cwd();
+const [file] = askWithRetry(() => {
     let name = (0, Questionnaire_1.askPublic)('File name');
     if (!/^([a-zA-Z0-9\_\.]+)$/i.test(name))
         throw 'Name should contain only letters, numbers, "_" and "."';
     if (name.slice(-5) != '.json')
         name += '.json';
     const tmp_name = workDir + (workDir.includes('/') ? '/' : '\\') + name;
-    if (fs_1.default.existsSync(tmp_name))
-        throw 'This file already exists, try another name';
+    if (!fs_1.default.existsSync(tmp_name))
+        throw 'Incorrect path to file';
     return [tmp_name, name];
 });
+console.log('Read profile:', file);
+const data = JSON.parse(fs_1.default.readFileSync(file).toString());
+if (!data) {
+    console.error(cli_color_1.default.red('Can\'t parse json file'));
+    process.exit(1);
+}
+if (!(data.wallets instanceof Array)) {
+    console.error(cli_color_1.default.red('Incorrect format of wallets list'));
+    process.exit(1);
+}
+const password = Password_1.default.askPassword();
 function saveProfile() {
     fs_1.default.writeFileSync(file, JSON.stringify(data, null, 2));
     console.log(cli_color_1.default.greenBright('\n+ saved\n'));
 }
-/** STEP 3: add wallets */
-console.log('');
-console.log(cli_color_1.default.bgYellow(cli_color_1.default.black('   Add some wallets   ')));
 const networks_1 = __importDefault(require("./networks"));
 const networks = Object.keys(networks_1.default);
 while (true) {
@@ -146,48 +122,6 @@ while (true) {
     if (!(0, Questionnaire_1.askYesNo)('Add another wallet?'))
         break;
 }
-/** STEP 4: change default interval of updates */
-const new_interval = askWithRetry(() => {
-    let res = (0, Questionnaire_1.askPublic)('Interval updates in seconds (3600 sec -> 1 hour)');
-    if (!res)
-        return '';
-    res = parseInt(res);
-    if (isNaN(res) || !res)
-        return '';
-    return res;
-});
-if (new_interval !== '') {
-    data.interval = new_interval;
-    saveProfile();
-}
-/** STEP 5: connect Telegram */
-if ((0, Questionnaire_1.askYesNo)('Connect Telegram notifications? (you need to have a bot)')) {
-    const token = (0, Questionnaire_1.askPublic)('Your token');
-    const tmp_verify_code = uuid_1.default.v4();
-    console.log('\nSay to your bot a code: ' + cli_color_1.default.bold(tmp_verify_code) + '\n');
-    data.telegram = {
-        token: password.encrypt(token),
-        chats: []
-    };
-    const bot = new node_telegram_bot_api_1.default(token, { polling: true });
-    bot.on('message', (msg) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a, _b;
-        if (((_a = msg.text) === null || _a === void 0 ? void 0 : _a.trim()) !== tmp_verify_code)
-            return;
-        const chat_id = password.encrypt(msg.chat.id.toString());
-        (_b = data.telegram) === null || _b === void 0 ? void 0 : _b.chats.push(chat_id);
-        yield bot.sendMessage(msg.chat.id, '<b>Restake:</b> Bot has been connected to profile ' + userFile, { parse_mode: 'HTML' });
-        console.log(cli_color_1.default.greenBright('Bot has been connected!'));
-        saveProfile();
-        end();
-    }));
-}
-else {
-    end();
-}
-function end() {
-    console.log(cli_color_1.default.bgGreenBright(cli_color_1.default.black(' Profile saved! Now you can use command `restake ' + userFile + '` to start process. ')));
-    console.log('');
-    process.exit(0);
-}
-//# sourceMappingURL=init.js.map
+console.log(cli_color_1.default.green('Completed'));
+process.exit(0);
+//# sourceMappingURL=add_wallet.js.map

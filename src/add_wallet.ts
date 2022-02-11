@@ -1,20 +1,10 @@
 import fs from "fs";
 import clc from "cli-color";
-import TelegramBot from "node-telegram-bot-api";
-import uuid from "uuid";
 
 import Password from "./classes/protection/Password";
-import { askSecret, askPublic, askSelectList, askYesNo } from "./classes/Questionnaire";
+import { askPublic, askSelectList, askYesNo } from "./classes/Questionnaire";
 
 import { profile, wallet } from "./types/profile";
-
-const workDir = process.cwd();
-
-const data: profile = {
-	wallets: [],
-	interval: 3600,
-	telegram: undefined
-};
 
 function askWithRetry (clb: Function, attempts: number = 3): any {
 	do {
@@ -28,44 +18,35 @@ function askWithRetry (clb: Function, attempts: number = 3): any {
 	if (attempts < 1) console.log('Goodbye'), process.exit(1);
 }
 
-/** STEP 1: Setup main password */
+const workDir = process.cwd();
 
-let pass: string = askWithRetry(() => {
-	const res = askSecret('Set-up your password');
-	if (res.length < 6) throw 'Your password should contain minimum 6 symbols';
-	return res;
-});
-
-askWithRetry(() => {
-	const res = askSecret('Repeat your password');
-	if (pass !== res) throw 'Passwords don\'t match';
-});
-
-console.log(clc.bgYellow(clc.black('   All Right! Let\'s begin!   ')));
-
-const password = new Password(pass);
-
-/** STEP 2: file name */
-
-console.log(clc.bgYellow(clc.black('   Let\'s imagin name for your config file   ')));
-const [file, userFile]: [string, string] = askWithRetry(() => {
+const [file]: [string, string] = askWithRetry(() => {
 	let name = askPublic('File name');
 	if (!/^([a-zA-Z0-9\_\.]+)$/i.test(name)) throw 'Name should contain only letters, numbers, "_" and "."';
 	if (name.slice(-5) != '.json') name += '.json';
 	const tmp_name = workDir + (workDir.includes('/') ? '/' : '\\') + name;
-	if (fs.existsSync(tmp_name)) throw 'This file already exists, try another name';
+	if (!fs.existsSync(tmp_name)) throw 'Incorrect path to file';
 	return [tmp_name, name];
 });
+console.log('Read profile:', file);
+
+const data: profile = JSON.parse(fs.readFileSync(file).toString());
+if (!data) {
+	console.error(clc.red('Can\'t parse json file'));
+	process.exit(1);
+}
+
+if (!(data.wallets instanceof Array)) {
+	console.error(clc.red('Incorrect format of wallets list'));
+	process.exit(1);
+}
+
+const password = Password.askPassword();
 
 function saveProfile() {
 	fs.writeFileSync(file, JSON.stringify(data, null, 2));
 	console.log(clc.greenBright('\n+ saved\n'));
 }
-
-/** STEP 3: add wallets */
-
-console.log('');
-console.log(clc.bgYellow(clc.black('   Add some wallets   ')));
 
 import presets from "./networks";
 
@@ -145,53 +126,5 @@ while (true) {
 	if(!askYesNo('Add another wallet?')) break;
 }
 
-/** STEP 4: change default interval of updates */
-
-const new_interval: number | '' = askWithRetry(() => {
-	let res: string | number = askPublic('Interval updates in seconds (3600 sec -> 1 hour)');
-	if (!res) return '';
-	res = parseInt(res);
-	if (isNaN(res) || !res) return '';
-	return res;
-});
-if (new_interval !== '') {
-	data.interval = new_interval;
-	saveProfile();
-}
-
-/** STEP 5: connect Telegram */
-
-if(askYesNo('Connect Telegram notifications? (you need to have a bot)')) {
-	const token = askPublic('Your token');
-
-	const tmp_verify_code = uuid.v4();
-
-	console.log('\nSay to your bot a code: ' + clc.bold(tmp_verify_code) + '\n');
-
-	data.telegram = {
-		token: password.encrypt(token),
-		chats: []
-	};
-
-	const bot = new TelegramBot(token, { polling: true });
-
-	bot.on('message', async (msg) => {
-		if (msg.text?.trim() !== tmp_verify_code) return;
-		const chat_id = password.encrypt(msg.chat.id.toString());
-		data.telegram?.chats.push(chat_id);
-		await bot.sendMessage(msg.chat.id, '<b>Restake:</b> Bot has been connected to profile ' + userFile, { parse_mode: 'HTML' });
-		console.log(clc.greenBright('Bot has been connected!'));
-
-		saveProfile();
-
-		end();
-	});
-} else {
-	end();
-}
-
-function end() {
-	console.log(clc.bgGreenBright(clc.black(' Profile saved! Now you can use command `restake ' + userFile + '` to start process. ')))
-	console.log('');
-	process.exit(0);
-}
+console.log(clc.green('Completed'));
+process.exit(0);

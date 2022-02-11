@@ -3,6 +3,10 @@ switch (process.argv[2]) {
     case 'init':
         require('./dist/init');
         break;
+    case 'add_wallet':
+    case 'add':
+        require('./dist/add_wallet');
+        break;
     case 'encoder':
         require('./dist/encoder');
         break;
