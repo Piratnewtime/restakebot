@@ -1,6 +1,10 @@
 {
   "name": "restakebot",
-  "version": "0.1.0",
+  "preferGlobal": true,
+  "version": "0.1.2",
+  "engines": {
+    "node": ">=15.3.0"
+  },
   "description": "Automatic claim and stake crypto assets in different networks",
   "main": "./index.js",
   "repository": {
@@ -13,6 +17,13 @@
   "homepage": "https://github.com/Piratnewtime/restakebot",
   "author": "Piratnewtime (https://github.com/Piratnewtime)",
   "license": "MIT",
+  "directories": {
+    "bin": "./bin",
+    "dist": "./dist"
+  },
+  "bin": {
+    "restakebot": "./bin/restakebot"
+  },
   "dependencies": {
     "@bandprotocol/bandchain.js": "^2.0.3",
     "ansi-styles": "^3.2.1",
