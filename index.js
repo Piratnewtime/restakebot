@@ -15,6 +15,11 @@ switch (process.argv[2]) {
     case 'repass':
         require('./dist/change_pass');
         break;
+    case 'connect_tg':
+    case 'add_tg':
+    case 'tg':
+        require('./dist/connect_tg');
+        break;
     default:
         require('./dist/index');
         break;
