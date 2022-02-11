@@ -123,7 +123,7 @@
     "wrappy": "^1.0.2"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"No test specified\""
   },
   "devDependencies": {
     "@types/cli-color": "^2.0.2",
