@@ -26,4 +26,3 @@ class Wallet {
     }
 }
 exports.default = Wallet;
-//# sourceMappingURL=Wallet.js.map

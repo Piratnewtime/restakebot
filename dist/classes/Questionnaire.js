@@ -24,4 +24,3 @@ function askYesNo(question) {
     return readline_sync_1.default.keyInYNStrict(question);
 }
 exports.askYesNo = askYesNo;
-//# sourceMappingURL=Questionnaire.js.map

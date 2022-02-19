@@ -22,4 +22,3 @@ class Secret {
     }
 }
 exports.default = Secret;
-//# sourceMappingURL=Secret.js.map

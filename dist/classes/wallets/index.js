@@ -15,4 +15,3 @@ __exportStar(require("./Osmosis"), exports);
 __exportStar(require("./Bsc_xct"), exports);
 __exportStar(require("./Bsc_xct/private_sale/Team"), exports);
 __exportStar(require("./Bsc_xct/Autostake"), exports);
-//# sourceMappingURL=index.js.map

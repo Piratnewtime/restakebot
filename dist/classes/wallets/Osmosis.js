@@ -45,4 +45,3 @@ class Osmosis extends CosmosV1_1.CosmosV1 {
     }
 }
 exports.Osmosis = Osmosis;
-//# sourceMappingURL=Osmosis.js.map

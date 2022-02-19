@@ -3,21 +3,21 @@ import BigNumber from "bignumber.js";
 import { Wallet as WalletMethods, Transaction, Message, Coin, Fee } from "@bandprotocol/bandchain.js";
 import IWallet from "./IWallet";
 import Wallet from "./Wallet";
-import { cosmos_rewards } from "../../types/cosmos_rewards";
-import { builded_tx } from "../../types/builded_tx";
+import { CosmosRewards } from "../../types/CosmosRewards";
+import { BuildedTx } from "../../types/BuildedTx";
 
 export class CosmosV1 extends Wallet implements IWallet {
 	async balance (): Promise<number> {
 		return (await axios.get(`${this.host}/cosmos/bank/v1beta1/balances/${this.address}/${this.nativeDenom}`, { timeout: 20000 })).data.balance.amount / 1e6;
 	}
 
-	async rewards (): Promise<cosmos_rewards> {
-		let list: cosmos_rewards = (await axios.get(`${this.host}/cosmos/distribution/v1beta1/delegators/${this.address}/rewards`, { timeout: 20000 })).data.rewards;
+	async rewards (): Promise<CosmosRewards> {
+		let list: CosmosRewards = (await axios.get(`${this.host}/cosmos/distribution/v1beta1/delegators/${this.address}/rewards`, { timeout: 20000 })).data.rewards;
     list = list.filter(pack => !!pack.reward.length);
     return list;
 	}
 
-	filterRewards (rewards: cosmos_rewards): cosmos_rewards {
+	filterRewards (rewards: CosmosRewards): CosmosRewards {
 		if (!this.triggers.length) return [];
 		return rewards.filter(pack => {
       const reward = pack.reward.filter(i => {
@@ -30,7 +30,7 @@ export class CosmosV1 extends Wallet implements IWallet {
 		});
 	}
 
-  summaryRewards (rewards: cosmos_rewards): Array<string> {
+  summaryRewards (rewards: CosmosRewards): Array<string> {
     const list: Array<string> = [];
     rewards.forEach(pack => {
       pack.reward.forEach(i => {
@@ -40,7 +40,7 @@ export class CosmosV1 extends Wallet implements IWallet {
     return list;
   }
 
-  async restakeRewards (rewards: cosmos_rewards): Promise<builded_tx | null> {
+  async restakeRewards (rewards: CosmosRewards): Promise<BuildedTx | null> {
     if (!rewards.length) return null;
 
     const { MsgWithdrawDelegatorReward, MsgDelegate } = Message;

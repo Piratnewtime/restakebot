@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import { Bsc_xct } from "..";
-import { builded_tx } from "../../../../types/builded_tx";
+import { BuildedTx } from "../../../../types/BuildedTx";
 
 const PrivateSaleAbi = require('../abis/PrivateSale.json');
 
@@ -15,7 +15,7 @@ export class Bsc_xct_private1 extends Bsc_xct {
 		return [rewards];
 	}
 
-  async restakeRewards (rewards: number[]): Promise<builded_tx | null> {
+  async restakeRewards (rewards: number[]): Promise<BuildedTx | null> {
     if (!rewards.length) return null;
     if (!this.web3) throw 'web3 is null';
 

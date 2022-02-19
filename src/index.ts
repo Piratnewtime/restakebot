@@ -8,7 +8,7 @@ import Notice, { NoticeStatus } from "./classes/Notice";
 
 import * as modules from "./classes/wallets";
 import IWallet from "./classes/wallets/IWallet";
-import { profile } from "./types/profile";
+import { Profile } from "./types/Profile";
 
 let file = process.argv[2];
 if (!file) {
@@ -25,7 +25,7 @@ if (!fs.existsSync(file)) {
 	process.exit(1);
 }
 
-const profileData: profile = JSON.parse(fs.readFileSync(file).toString());
+const profileData: Profile = JSON.parse(fs.readFileSync(file).toString());
 if (!profileData) {
 	console.error(clc.red('Can\'t parse json file'));
 	process.exit(1);

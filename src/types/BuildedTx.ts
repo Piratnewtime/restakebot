@@ -1,4 +1,4 @@
-export type builded_tx = {
+export type BuildedTx = {
 	tx: unknown,
 	gas: number,
 	fee: number

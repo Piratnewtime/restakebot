@@ -123,4 +123,3 @@ class Bsc_xct extends Wallet_1.default {
     }
 }
 exports.Bsc_xct = Bsc_xct;
-//# sourceMappingURL=index.js.map

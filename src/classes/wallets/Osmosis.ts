@@ -1,11 +1,11 @@
 import axios from "axios";
 import { CosmosV1 } from "./CosmosV1";
-import { coin } from "../../types/coin";
-import { cosmos_rewards } from "../../types/cosmos_rewards";
+import { Coin } from "../../types/Coin";
+import { CosmosRewards } from "../../types/CosmosRewards";
 
 export class Osmosis extends CosmosV1 {
 	async balance (): Promise<number> {
-		const result: coin[] | undefined = (await axios.get(`${this.host}/bank/balances/${this.address}`, { timeout: 20000 })).data.result;
+		const result: Coin[] | undefined = (await axios.get(`${this.host}/bank/balances/${this.address}`, { timeout: 20000 })).data.result;
 		let amount: number = 0;
 		if (result?.length) {
 			const item = result.find(coin => coin.denom === this.nativeDenom);
@@ -14,8 +14,8 @@ export class Osmosis extends CosmosV1 {
 		return amount;
 	}
 
-	async rewards (): Promise<cosmos_rewards> {
-		let list: cosmos_rewards | null = (await axios.get(`${this.host}/distribution/delegators/${this.address}/rewards`, { timeout: 20000 })).data.result.rewards;
+	async rewards (): Promise<CosmosRewards> {
+		let list: CosmosRewards | null = (await axios.get(`${this.host}/distribution/delegators/${this.address}/rewards`, { timeout: 20000 })).data.result.rewards;
     if (list === null) return [];
     list = list.filter(pack => !!pack.reward.length);
     return list;

@@ -78,4 +78,3 @@ bot.on('message', (msg) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(cli_color_1.default.green('Completed'));
     process.exit(0);
 }));
-//# sourceMappingURL=connect_tg.js.map

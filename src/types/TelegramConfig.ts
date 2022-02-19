@@ -1,4 +1,4 @@
-export type telegram_config = {
+export type TelegramConfig = {
 	token: string,
 	chats: string[]
 }

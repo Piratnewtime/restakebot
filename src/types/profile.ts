@@ -1,16 +1,16 @@
-import { config } from "./config";
-import { coin } from "./coin";
-import { telegram_config } from "./telegram_config";
+import { Config } from "./Config";
+import { Coin } from "./Coin";
+import { TelegramConfig } from "./TelegramConfig";
 
-export type profile = {
-	wallets: wallet[],
+export type Profile = {
+	wallets: Wallet[],
 	interval: number,
-	telegram: telegram_config | undefined
+	telegram: TelegramConfig | undefined
 }
 
-export type wallet = {
+export type Wallet = {
 	network: string,
-	config: config,
-	triggers: Array<coin>,
+	config: Config,
+	triggers: Array<Coin>,
 	interval: number | undefined
 }

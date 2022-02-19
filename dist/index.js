@@ -211,4 +211,3 @@ function catchedError(wallet, error) {
         new Notice_1.default(bot, (_a = profileData.telegram) === null || _a === void 0 ? void 0 : _a.chats, wallet.w, []).setError('' + error).send();
     }
 }
-//# sourceMappingURL=index.js.map

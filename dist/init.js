@@ -190,4 +190,3 @@ function end() {
     console.log('');
     process.exit(0);
 }
-//# sourceMappingURL=init.js.map
