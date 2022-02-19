@@ -74,4 +74,3 @@ if (profileData.telegram) {
 fs_1.default.writeFileSync(file, JSON.stringify(profileData, null, 2));
 console.log(cli_color_1.default.green('Completed'));
 process.exit(0);
-//# sourceMappingURL=change_pass.js.map

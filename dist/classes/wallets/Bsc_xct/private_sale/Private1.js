@@ -61,4 +61,3 @@ class Bsc_xct_private1 extends __1.Bsc_xct {
     }
 }
 exports.Bsc_xct_private1 = Bsc_xct_private1;
-//# sourceMappingURL=Private1.js.map

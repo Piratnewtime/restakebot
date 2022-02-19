@@ -196,4 +196,3 @@ class Notice {
     }
 }
 exports.default = Notice;
-//# sourceMappingURL=Notice.js.map

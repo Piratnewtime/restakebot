@@ -124,4 +124,3 @@ while (true) {
 }
 console.log(cli_color_1.default.green('Completed'));
 process.exit(0);
-//# sourceMappingURL=add_wallet.js.map

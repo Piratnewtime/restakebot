@@ -9,4 +9,3 @@ class Bsc_xct_team extends Private1_1.Bsc_xct_private1 {
     }
 }
 exports.Bsc_xct_team = Bsc_xct_team;
-//# sourceMappingURL=Team.js.map

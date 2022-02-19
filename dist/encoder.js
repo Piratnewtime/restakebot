@@ -38,4 +38,3 @@ while (true) {
     const encrypted = password.encrypt(sk);
     console.log('Encrypted:', cli_color_1.default.bgWhite(' ' + cli_color_1.default.black(encrypted) + ' '));
 }
-//# sourceMappingURL=encoder.js.map

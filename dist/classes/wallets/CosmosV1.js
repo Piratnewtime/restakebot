@@ -236,4 +236,3 @@ class CosmosV1 extends Wallet_1.default {
     }
 }
 exports.CosmosV1 = CosmosV1;
-//# sourceMappingURL=CosmosV1.js.map

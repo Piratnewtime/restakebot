@@ -53,4 +53,3 @@ class Bsc_xct_autostake extends _1.Bsc_xct {
     }
 }
 exports.Bsc_xct_autostake = Bsc_xct_autostake;
-//# sourceMappingURL=Autostake.js.map
