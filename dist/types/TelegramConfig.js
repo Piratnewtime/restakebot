@@ -1,3 +1,3 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-//# sourceMappingURL=Config.js.map
+//# sourceMappingURL=TelegramConfig.js.map

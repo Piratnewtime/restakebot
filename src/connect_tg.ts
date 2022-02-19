@@ -6,7 +6,7 @@ import TelegramBot from "node-telegram-bot-api";
 import Password from "./classes/protection/Password";
 import { askPublic } from "./classes/Questionnaire";
 
-import { profile } from "./types/profile";
+import { Profile } from "./types/Profile";
 
 function askWithRetry (clb: Function, attempts: number = 3): any {
 	do {
@@ -32,7 +32,7 @@ const [file, userFile]: [string, string] = askWithRetry(() => {
 });
 console.log('Read profile:', file);
 
-const data: profile = JSON.parse(fs.readFileSync(file).toString());
+const data: Profile = JSON.parse(fs.readFileSync(file).toString());
 if (!data) {
 	console.error(clc.red('Can\'t parse json file'));
 	process.exit(1);

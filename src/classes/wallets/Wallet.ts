@@ -1,5 +1,4 @@
-import { config } from "../../types/config";
-import { wallet } from "../../types/profile";
+import * as Profile from "../../types/Profile";
 import Secret from "../protection/Secret";
 
 export default class Wallet {
@@ -14,7 +13,7 @@ export default class Wallet {
 	readonly address: string
 	protected nativeDenom: string
 
-	constructor (public w: wallet, protected secret: Secret) {
+	constructor (public w: Profile.Wallet, protected secret: Secret) {
 		const config = w.config;
 		this.host = config.host;
 		this.gasPrice = config.gasPrice;

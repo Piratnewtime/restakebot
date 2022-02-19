@@ -1,4 +1,4 @@
-export type coin = {
+export type Coin = {
 	amount: string,
 	denom: string
 }

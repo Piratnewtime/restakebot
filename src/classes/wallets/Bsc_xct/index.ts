@@ -2,8 +2,8 @@ import BigNumber from "bignumber.js";
 import Web3 from "web3";
 import IWallet from "../IWallet";
 import Wallet from "../Wallet";
-import { builded_tx } from "../../../types/builded_tx";
-import { wallet } from "../../../types/profile";
+import { BuildedTx } from "../../../types/BuildedTx";
+import * as Profile from "../../../types/Profile";
 import Secret from "../../protection/Secret";
 
 const TokenLockerAbi = require('./abis/TokenLocker.json');
@@ -14,7 +14,7 @@ export class Bsc_xct extends Wallet implements IWallet {
   protected TokenLocker: any = null;
   protected Rewarding: any = null;
 
-  constructor (public w: wallet, protected secret: Secret) {
+  constructor (public w: Profile.Wallet, protected secret: Secret) {
     super(w, secret);
     this.web3 = new Web3(w.config.host);
     this.TokenLocker = new this.web3.eth.Contract(TokenLockerAbi.abi, '0xe8670901E86818745b28C8b30B17986958fCe8Cc');
@@ -43,7 +43,7 @@ export class Bsc_xct extends Wallet implements IWallet {
     return list;
   }
 
-  async restakeRewards (rewards: number[]): Promise<builded_tx | null> {
+  async restakeRewards (rewards: number[]): Promise<BuildedTx | null> {
     if (!rewards.length) return null;
     if (!this.web3) throw 'web3 is null';
 

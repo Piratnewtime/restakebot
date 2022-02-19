@@ -1,6 +1,6 @@
 import TelegramBot, { InlineKeyboardMarkup } from "node-telegram-bot-api";
 
-import { wallet } from "../types/profile";
+import { Wallet } from "../types/Profile";
 
 const links: { [network: string]: { address: string, tx: string } } = {
   cosmos: {
@@ -62,7 +62,7 @@ export default class Notice {
 	constructor(
 		private bot: TelegramBot,
 		public chats: string[] | undefined,
-		public wallet: wallet,
+		public wallet: Wallet,
 		public rewards: string[]
 	) {}
 

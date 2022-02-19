@@ -4,7 +4,7 @@ import clc from "cli-color";
 import Password from "./classes/protection/Password";
 import { askSecret, askPublic } from "./classes/Questionnaire";
 
-import { profile } from "./types/profile";
+import { Profile } from "./types/Profile";
 
 function askWithRetry (clb: Function, attempts: number = 3): any {
 	do {
@@ -30,7 +30,7 @@ const [file]: [string, string] = askWithRetry(() => {
 });
 console.log('Read profile:', file);
 
-const profileData: profile = JSON.parse(fs.readFileSync(file).toString());
+const profileData: Profile = JSON.parse(fs.readFileSync(file).toString());
 if (!profileData) {
 	console.error(clc.red('Can\'t parse json file'));
 	process.exit(1);

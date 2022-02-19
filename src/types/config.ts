@@ -1,4 +1,4 @@
-export type config = {
+export type Config = {
 	host: string,
 	gasPrice: number,
 	nativeDenom: string,

@@ -6,11 +6,11 @@ import uuid from "uuid";
 import Password from "./classes/protection/Password";
 import { askSecret, askPublic, askSelectList, askYesNo } from "./classes/Questionnaire";
 
-import { profile, wallet } from "./types/profile";
+import { Profile, Wallet } from "./types/Profile";
 
 const workDir = process.cwd();
 
-const data: profile = {
+const data: Profile = {
 	wallets: [],
 	interval: 3600,
 	telegram: undefined
@@ -86,7 +86,7 @@ while (true) {
 	const preset = presets[net];
 	if (!preset) throw 'Undefined preset for this network';
 
-	const w: wallet = {
+	const w: Wallet = {
 		network: net,
 		config: {
 			host: preset.host,

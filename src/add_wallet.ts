@@ -4,7 +4,7 @@ import clc from "cli-color";
 import Password from "./classes/protection/Password";
 import { askPublic, askSelectList, askYesNo } from "./classes/Questionnaire";
 
-import { profile, wallet } from "./types/profile";
+import { Profile, Wallet } from "./types/Profile";
 
 function askWithRetry (clb: Function, attempts: number = 3): any {
 	do {
@@ -30,7 +30,7 @@ const [file]: [string, string] = askWithRetry(() => {
 });
 console.log('Read profile:', file);
 
-const data: profile = JSON.parse(fs.readFileSync(file).toString());
+const data: Profile = JSON.parse(fs.readFileSync(file).toString());
 if (!data) {
 	console.error(clc.red('Can\'t parse json file'));
 	process.exit(1);
@@ -67,7 +67,7 @@ while (true) {
 	const preset = presets[net];
 	if (!preset) throw 'Undefined preset for this network';
 
-	const w: wallet = {
+	const w: Wallet = {
 		network: net,
 		config: {
 			host: preset.host,
