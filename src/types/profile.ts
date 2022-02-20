@@ -4,13 +4,14 @@ import { TelegramConfig } from "./TelegramConfig";
 
 export type Profile = {
 	wallets: Wallet[],
+	apps: never[],
 	interval: number,
-	telegram: TelegramConfig | undefined
+	telegram?: TelegramConfig
 }
 
 export type Wallet = {
 	network: string,
 	config: Config,
 	triggers: Array<Coin>,
-	interval: number | undefined
+	interval?: number
 }

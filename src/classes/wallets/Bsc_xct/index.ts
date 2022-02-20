@@ -1,16 +1,17 @@
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
-import IWallet from "../IWallet";
-import Wallet from "../Wallet";
+import { IWallet } from "../../Wallet";
+import Wallet from "../../Wallet";
 import { BuildedTx } from "../../../types/BuildedTx";
 import * as Profile from "../../../types/Profile";
 import Secret from "../../protection/Secret";
+import { Address } from "../../Address";
 
-const TokenLockerAbi = require('./abis/TokenLocker.json');
-const RewardingAbi = require('./abis/Rewarding.json');
+const TokenLockerAbi = require('../../../../resources/xct/TokenLocker.json');
+const RewardingAbi = require('../../../../resources/xct/Rewarding.json');
 
 export class Bsc_xct extends Wallet implements IWallet {
-  protected web3: Web3 = new Web3();
+  protected web3: Web3;
   protected TokenLocker: any = null;
   protected Rewarding: any = null;
 
@@ -21,13 +22,17 @@ export class Bsc_xct extends Wallet implements IWallet {
     this.Rewarding = new this.web3.eth.Contract(RewardingAbi.abi, '0xd66C4B98AEF322D4257F485d01767908C13a341a');
   }
 
+  extractAddress () {
+    return Address(this.web3.eth.accounts.privateKeyToAccount(this.secret.getKey()).address);
+  }
+
 	async balance (): Promise<number> {
     if (!this.web3) throw 'web3 is null';
-    return new BigNumber(await this.web3.eth.getBalance(this.address, 'pending')).div(1e18).toNumber();
+    return new BigNumber(await this.web3.eth.getBalance(this.getAddress(), 'pending')).div(1e18).toNumber();
 	}
 
 	async rewards (): Promise<number[]> {
-    const rewards = parseFloat(new BigNumber(await this.Rewarding.methods.claimable(this.address).call()).div(1e6).toFixed(6));
+    const rewards = parseFloat(new BigNumber(await this.Rewarding.methods.claimable(this.getAddress()).call()).div(1e6).toFixed(6));
     return [rewards];
 	}
 
@@ -45,15 +50,14 @@ export class Bsc_xct extends Wallet implements IWallet {
 
   async restakeRewards (rewards: number[]): Promise<BuildedTx | null> {
     if (!rewards.length) return null;
-    if (!this.web3) throw 'web3 is null';
 
     const abi = this.TokenLocker.methods.restake().encodeABI();
-		const nonce = await this.web3.eth.getTransactionCount(this.address, 'pending');
+		const nonce = await this.web3.eth.getTransactionCount(this.getAddress(), 'pending');
 		const chainId = await this.web3.eth.getChainId();
 		const gasPrice = this.w.config.gasPrice || new BigNumber(await this.web3.eth.getGasPrice()).times(1.1).toFixed(0);
 
 		const tx: tx = {
-			from: this.address,
+			from: this.getAddress(),
 			to: '0xe8670901E86818745b28C8b30B17986958fCe8Cc',
 			data: abi,
 			gas: '0',
@@ -75,13 +79,10 @@ export class Bsc_xct extends Wallet implements IWallet {
   }
 
   async sendTx (tx_bytes: Uint8Array | string): Promise<string> {
-    if (!this.web3) throw 'web3 is null';
-
     return (await this.web3.eth.sendSignedTransaction(typeof tx_bytes != 'string' ? Buffer.from(tx_bytes).toString() : tx_bytes)).transactionHash;
   }
 
   async pendingTx (hash: string): Promise<void> {
-    if (!this.web3) throw 'web3 is null';
     const startTime = Date.now();
     const timeout = 72 * 3600 * 1000;
     do {
@@ -98,8 +99,6 @@ export class Bsc_xct extends Wallet implements IWallet {
   }
 
   async simulateTransaction (tx: tx): Promise<string> {
-    if (!this.web3) throw 'web3 is null';
-    
     let clone: tx = { ...tx };
 		clone.gas = Web3.utils.toHex(clone.gas);
 		clone.gasPrice = Web3.utils.toHex(clone.gasPrice);

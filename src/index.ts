@@ -6,8 +6,9 @@ import Secret from "./classes/protection/Secret";
 import Password from "./classes/protection/Password";
 import Notice, { NoticeStatus } from "./classes/Notice";
 
-import * as modules from "./classes/wallets";
-import IWallet from "./classes/wallets/IWallet";
+import networks from "./classes/wallets";
+import { IWallet } from "./classes/Wallet";
+import { MaskAddress } from "./classes/Address";
 import { Profile } from "./types/Profile";
 
 let file = process.argv[2];
@@ -50,14 +51,27 @@ const altered_wallets: Array<IWallet> = [];
 const notices: Map<IWallet, Notice> = new Map();
 
 profileData.wallets.forEach((w, index) => {
+	w.network = w.network.toLowerCase();
+
+	if (!(w.network in networks)) {
+		console.error(`Network ${w.network} is not supported yet`);
+		return;
+	}
+
 	const secret = new Secret(w.config.key.value, password);
 
 	if (!secret.checkKey()) {
-		console.error(clc.red(`Your ${w.network} wallet ${w.config.address} has incorrect key, please check your password`));
+		console.error(clc.red(`Your ${w.network} wallet #${index} has incorrect key, please check your password`));
 		process.exit(1);
 	}
 
-	let wallet: IWallet;
+	const Module = networks[w.network];
+	const wallet = new Module(w, secret);
+	if (w.config.address && w.config.address != wallet.getAddress()) {
+		console.error(clc.red(`Address "${w.config.address}" is not correct, real is "${MaskAddress(wallet.getAddress())}"`));
+		process.exit(1);
+	}
+	/*
 	switch (w.network) {
 		case 'cosmos':
 		case 'secret':
@@ -82,25 +96,30 @@ profileData.wallets.forEach((w, index) => {
 		default:
 			return;
 	}
+	*/
 
-	if (w.interval) {
-		altered_wallets.push(wallet);
-		setInterval(() => { processWallet(wallet).catch(error => catchedError(wallet, error)) }, w.interval * 1000);
-	} else {
-		wallets.push(wallet);
-	}
-	
-	for (const trigger of w.triggers) {
-		wallet.addTrigger(parseFloat(trigger.amount), trigger.denom);
+	if (w.triggers.length) {
+
+		for (const trigger of w.triggers) {
+			wallet.addTrigger(parseFloat(trigger.amount), trigger.denom);
+		}
+
+		if (w.interval) {
+			altered_wallets.push(wallet);
+			setInterval(() => { processWallet(wallet).catch(error => catchedError(wallet, error)) }, w.interval * 1000);
+		} else {
+			wallets.push(wallet);
+		}
+		
 	}
 
-	console.log(clc.bgWhite(clc.black(` ${index + 1}) Added ${w.network} wallet ${w.config.address} `)));
+	console.log(clc.bgWhite(clc.black(` ${index + 1}) Added ${w.network} wallet ${wallet.getPublicName()} `)));
 });
 
 const wTab = '      ';
 
 async function processWallet(wallet: IWallet): Promise<void> {
-	console.log('Check ' + clc.blue(wallet.address), new Date().toISOString());
+	console.log('Check ' + clc.blue(wallet.getPublicName()), new Date().toISOString());
 	const allRewards = await wallet.rewards();
 	const rewards = wallet.filterRewards(allRewards);
 	if (rewards.length) {
@@ -154,7 +173,7 @@ async function processWallet(wallet: IWallet): Promise<void> {
 	} else {
 		console.info(wTab + 'No rewards');
 	}
-	console.log(wTab + clc.italic('Done ' + clc.blueBright(wallet.address)), clc.italic(new Date().toISOString()));
+	console.log(wTab + clc.italic('Done ' + clc.blueBright(wallet.getPublicName())), clc.italic(new Date().toISOString()));
 	notices.delete(wallet);
 }
 
@@ -171,7 +190,7 @@ main();
 setInterval(main, profileData.interval * 1000);
 
 function catchedError(wallet: IWallet, error: unknown): void {
-	console.error(wTab + clc.bgRed(clc.black(` Wallet ${wallet.address} has failed! `)));
+	console.error(wTab + clc.bgRed(clc.black(` Wallet ${wallet.getPublicName()} has failed! `)));
 	console.error(error);
 	const notice = notices.get(wallet);
 	if (notice) {

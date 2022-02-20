@@ -12,6 +12,7 @@ const workDir = process.cwd();
 
 const data: Profile = {
 	wallets: [],
+	apps: [],
 	interval: 3600,
 	telegram: undefined
 };
@@ -91,7 +92,6 @@ while (true) {
 		config: {
 			host: preset.host,
 			gasPrice: preset.gasPrice,
-			nativeDenom: preset.nativeDenom,
 			address: '',
 			key: {
 				type: 'privateKey',

@@ -1,18 +1,44 @@
 import axios, { AxiosError } from "axios";
 import BigNumber from "bignumber.js";
 import { Wallet as WalletMethods, Transaction, Message, Coin, Fee } from "@bandprotocol/bandchain.js";
-import IWallet from "./IWallet";
-import Wallet from "./Wallet";
-import { CosmosRewards } from "../../types/CosmosRewards";
-import { BuildedTx } from "../../types/BuildedTx";
+//import CosmosLib from "cosmos-lib";
+import bech32 from "bech32";
+//import CosmJS from "@cosmjs/launchpad";
+import { IWallet } from "../../../Wallet";
+import Wallet from "../../../Wallet";
+import { CosmosRewards } from "../../../../types/CosmosRewards";
+import { BuildedTx } from "../../../../types/BuildedTx";
+import { Coin as CoinStruct } from "../../../../types/Coin";
+import { Address, MaskAddress } from "../../../Address";
 
-export class CosmosV1 extends Wallet implements IWallet {
-	async balance (): Promise<number> {
-		return (await axios.get(`${this.host}/cosmos/bank/v1beta1/balances/${this.address}/${this.nativeDenom}`, { timeout: 20000 })).data.balance.amount / 1e6;
+export default class Cosmos_legacy extends Wallet implements IWallet {
+  protected prefix: string = 'cosmos';
+  protected nativeDenom: string = 'uatom';
+
+  extractAddress () {
+    const pubKey = WalletMethods.PrivateKey.fromHex(this.secret.getKey()).toPubkey().toAddress().toHex();
+    const words = bech32.toWords(Buffer.from(pubKey, 'hex'));
+    if (words.length === 0) throw new Error('Unsuccessful bech32.toWords call');
+    return Address(bech32.encode(this.prefix, words));
+  }
+
+  getPublicName () {
+		return this.w.config.alias || this.w.config.address || MaskAddress(this.getAddress(), 12, 5);
+	}
+
+  async balance (): Promise<number> {
+		const result: CoinStruct[] | undefined = (await axios.get(`${this.host}/bank/balances/${this.getAddress()}`, { timeout: 20000 })).data.result;
+		let amount: number = 0;
+		if (result?.length) {
+			const item = result.find(coin => coin.denom === this.nativeDenom);
+			if (item) amount = parseInt(item.amount) / 1e6;
+		}
+		return amount;
 	}
 
 	async rewards (): Promise<CosmosRewards> {
-		let list: CosmosRewards = (await axios.get(`${this.host}/cosmos/distribution/v1beta1/delegators/${this.address}/rewards`, { timeout: 20000 })).data.rewards;
+		let list: CosmosRewards | null = (await axios.get(`${this.host}/distribution/delegators/${this.getAddress()}/rewards`, { timeout: 20000 })).data.result.rewards;
+    if (list === null) return [];
     list = list.filter(pack => !!pack.reward.length);
     return list;
 	}
@@ -49,7 +75,7 @@ export class CosmosV1 extends Wallet implements IWallet {
     rewards.forEach(pack => {
       // withdraw
       msgs.push(new MsgWithdrawDelegatorReward(
-        this.address,
+        this.getAddress(),
         pack.validator_address,
       ));
 
@@ -68,7 +94,7 @@ export class CosmosV1 extends Wallet implements IWallet {
         coin.setAmount(_.amount.split('.')[0]);
 
         msgs.push(new MsgDelegate(
-          this.address,
+          this.getAddress(),
           pack.validator_address,
           coin
         ));
@@ -84,7 +110,7 @@ export class CosmosV1 extends Wallet implements IWallet {
         coin.setAmount(amount);
 
         msgs.push(new MsgDelegate(
-          this.address,
+          this.getAddress(),
           this.target,
           coin
         ));
@@ -240,9 +266,9 @@ export class CosmosV1 extends Wallet implements IWallet {
   }
 
   async getAccount (): Promise<account> {
-    const { account } = (await axios.get(`${this.host}/cosmos/auth/v1beta1/accounts/${this.address}`)).data;
-    return account;
-  }
+    const { value } = (await axios.get(`${this.host}/auth/accounts/${this.getAddress()}`)).data.result;
+    return value;
+	}
 
   async getChainId (): Promise<string> {
     const { node_info: { network } } = (await axios.get(`${this.host}/node_info`)).data;
