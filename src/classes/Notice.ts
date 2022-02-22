@@ -52,8 +52,8 @@ export enum NoticeStatus {
 export default class Notice {
 	public message_ids: number[] = []
 	public status: NoticeStatus = NoticeStatus.Initialised
-  public balance: number = 0
-	public gas: number = 0
+  public balance: number = -1
+	public gas: number = -1
 	public fee: number = 0
 	public error: string = ''
   public txhash: string = ''
@@ -121,14 +121,14 @@ export default class Notice {
 		}
 		text += `<b>#${this.wallet.network.toUpperCase()} #${this.status.toUpperCase()}</b>\n`;
     text += `<tg-spoiler><b>${this.wallet.config.address}</b></tg-spoiler>\n`;
-    text += `Balance: ${this.balance}\n`;
+    if (this.balance != -1) text += `Balance: ${this.balance}\n`;
 
     if (this.rewards.length) {
       text += '\n<b>Rewards:</b>\n';
       text += this.rewards.map(row => `- ${row}\n`).join('');
     }
 
-    if (this.status !== NoticeStatus.Initialised) {
+    if (this.status !== NoticeStatus.Initialised && this.gas != -1) {
       text += '\n<b>Transaction:</b>\n';
       text += `Fee: ${this.fee} (gas: ${this.gas})\n`;
       if (this.txhash) text += `Hash: <tg-spoiler><b>${this.txhash}</b></tg-spoiler>\n`;
