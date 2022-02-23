@@ -13,7 +13,7 @@ export type Wallet = {
 	id?: string,
 	network: string,
 	config: Config,
-	triggers: Array<Coin>,
+	triggers: Coin[],
 	interval?: number
 }
 
