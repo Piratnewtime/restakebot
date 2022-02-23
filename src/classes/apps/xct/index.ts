@@ -19,18 +19,18 @@ type Params = {
 };
 
 type Tx = {
-  from: string | number;
-  to: string;
-  value?: number | string;
-  gas: number | string;
-  gasPrice: number | string;
-  maxPriorityFeePerGas?: number | string;
-  maxFeePerGas?: number | string;
-  data?: string;
-  nonce?: number;
-  chainId?: number;
-  chain?: string;
-  hardfork?: string;
+	from: string | number;
+	to: string;
+	value?: number | string;
+	gas: number | string;
+	gasPrice: number | string;
+	maxPriorityFeePerGas?: number | string;
+	maxFeePerGas?: number | string;
+	data?: string;
+	nonce?: number;
+	chainId?: number;
+	chain?: string;
+	hardfork?: string;
 }
 
 type ProcessOptions = {
@@ -43,8 +43,8 @@ type ProcessOptions = {
 export default class Xct extends App implements IApp {
 	private wallets: AppWallet[];
 	private web3: Web3;
-  private TokenLocker: Contract;
-  private Rewarding: Contract;
+	private TokenLocker: Contract;
+	private Rewarding: Contract;
 	private privateSaleContracts: ({ name: string, limit: number, contract: Contract })[] = [];
 
 	constructor (private walletsAccess: AppWalletsAccess, private params: Params) {
@@ -65,8 +65,8 @@ export default class Xct extends App implements IApp {
 		const mainConfig = this.wallets[0].getConfig();
 
 		this.web3 = new Web3(mainConfig.host);
-    this.TokenLocker = new this.web3.eth.Contract(TokenLockerAbi.abi, '0xe8670901E86818745b28C8b30B17986958fCe8Cc');
-    this.Rewarding = new this.web3.eth.Contract(RewardingAbi.abi, '0xd66C4B98AEF322D4257F485d01767908C13a341a');
+		this.TokenLocker = new this.web3.eth.Contract(TokenLockerAbi.abi, '0xe8670901E86818745b28C8b30B17986958fCe8Cc');
+		this.Rewarding = new this.web3.eth.Contract(RewardingAbi.abi, '0xd66C4B98AEF322D4257F485d01767908C13a341a');
 		if (params.privateSale1) {
 			const contract = new this.web3.eth.Contract(PrivateSaleAbi.abi, '0x1bDc0247758a726f90549a640f21D9c27Ad0Cf0C');
 			this.privateSaleContracts.push({ name: 'Private Sale 1', limit: params.privateSale1, contract });
@@ -175,16 +175,16 @@ export default class Xct extends App implements IApp {
 			gasPrice,
 			chainId
 		};
-    
-    const simulated_gas = await wallet.simulateTransaction(tx);
-    tx.gas = new BigNumber(simulated_gas).times(1.3).toFixed(0);
+		
+		const simulated_gas = await wallet.simulateTransaction(tx);
+		tx.gas = new BigNumber(simulated_gas).times(1.3).toFixed(0);
 
 		const signedTx = await wallet.signTransaction(tx);
 
 		return {
-      tx: signedTx.rawTransaction,
-      gas: parseInt(simulated_gas),
-      fee: parseFloat(new BigNumber(tx.gas).times(gasPrice).div(1e18).toFixed(18))
-    }
+			tx: signedTx.rawTransaction,
+			gas: parseInt(simulated_gas),
+			fee: parseFloat(new BigNumber(tx.gas).times(gasPrice).div(1e18).toFixed(18))
+		}
 	}
 }
