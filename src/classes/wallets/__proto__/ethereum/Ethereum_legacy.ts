@@ -6,6 +6,7 @@ import { BuildedTx } from "../../../../types/BuildedTx";
 import * as Profile from "../../../../types/Profile";
 import Secret from "../../../protection/Secret";
 import { Address, MaskAddress } from "../../../Address";
+import { NetworkLinks } from "../../../Notice";
 
 export class Ethereum_legacy extends Wallet implements IWallet {
   protected web3: Web3;
@@ -13,6 +14,13 @@ export class Ethereum_legacy extends Wallet implements IWallet {
   constructor (public w: Profile.Wallet, protected secret: Secret) {
     super(w, secret);
     this.web3 = new Web3(w.config.host);
+  }
+
+  getPublicLinks (): NetworkLinks {
+    return {
+      address: 'https://etherscan.io/address/',
+      tx: 'https://etherscan.io/tx/'
+    }
   }
 
   extractAddress () {
@@ -43,6 +51,10 @@ export class Ethereum_legacy extends Wallet implements IWallet {
     return null;
   }
 
+  signTransaction (tx: Tx) {
+    return this.web3.eth.accounts.signTransaction(tx, this.secret.getKey());
+  }
+
   async sendTx (tx_bytes: Uint8Array | string): Promise<string> {
     return (await this.web3.eth.sendSignedTransaction(typeof tx_bytes != 'string' ? Buffer.from(tx_bytes).toString() : tx_bytes)).transactionHash;
   }
@@ -63,8 +75,8 @@ export class Ethereum_legacy extends Wallet implements IWallet {
     throw 'Transaction wasn\'t found, timeout exceeded';
   }
 
-  async simulateTransaction (tx: tx): Promise<string> {
-    let clone: tx = { ...tx };
+  async simulateTransaction (tx: Tx): Promise<string> {
+    let clone: Tx = { ...tx };
 		clone.gas = Web3.utils.toHex(clone.gas);
 		clone.gasPrice = Web3.utils.toHex(clone.gasPrice);
 		
@@ -72,7 +84,7 @@ export class Ethereum_legacy extends Wallet implements IWallet {
   }
 }
 
-interface tx {
+interface Tx {
   from: string | number;
   to: string;
   value?: number | string;

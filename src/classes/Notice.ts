@@ -1,45 +1,8 @@
 import TelegramBot, { InlineKeyboardMarkup } from "node-telegram-bot-api";
 
-import { Wallet } from "../types/Profile";
+import { IWallet } from "./Wallet";
 
-const links: { [network: string]: { address: string, tx: string } } = {
-  cosmos: {
-    address: 'https://www.mintscan.io/cosmos/account/',
-    tx: 'https://www.mintscan.io/cosmos/txs/'
-  },
-  secret: {
-    address: 'https://secretnodes.com/secret/chains/secret-4/accounts/',
-    tx: 'https://www.mintscan.io/secret/txs/'
-  },
-  osmosis: {
-    address: 'https://www.mintscan.io/osmosis/account/',
-    tx: 'https://www.mintscan.io/osmosis/txs/'
-  },
-  akash: {
-    address: 'https://www.mintscan.io/akash/account/',
-    tx: 'https://www.mintscan.io/akash/txs/'
-  },
-  kava: {
-    address: 'https://www.mintscan.io/kava/account/',
-    tx: 'https://www.mintscan.io/kava/txs/'
-  },
-  comdex: {
-    address: 'https://www.mintscan.io/comdex/account/',
-    tx: 'https://www.mintscan.io/comdex/txs/'
-  },
-  bsc_xct: {
-    address: 'https://bscscan.com/token/0xe8670901e86818745b28c8b30b17986958fce8cc?a=',
-    tx: 'https://bscscan.com/tx/'
-  },
-  bsc_xct_team: {
-    address: 'https://bscscan.com/token/0xe8670901e86818745b28c8b30b17986958fce8cc?a=',
-    tx: 'https://bscscan.com/tx/'
-  },
-  bsc_xct_autostake: {
-    address: 'https://bscscan.com/token/0xe8670901e86818745b28c8b30b17986958fce8cc?a=',
-    tx: 'https://bscscan.com/tx/'
-  }
-};
+export type NetworkLinks = { address: string, tx: string };
 
 export enum NoticeStatus {
 	Initialised = 'Initialised',
@@ -50,7 +13,7 @@ export enum NoticeStatus {
 }
 
 export default class Notice {
-	public message_ids: number[] = []
+	private message_ids: number[] = []
 	public status: NoticeStatus = NoticeStatus.Initialised
   public balance: number = -1
 	public gas: number = -1
@@ -58,13 +21,17 @@ export default class Notice {
 	public error: string = ''
   public txhash: string = ''
   public pending_time: number = 0
+  private links: NetworkLinks
 
 	constructor(
 		private bot: TelegramBot,
-		public chats: string[] | undefined,
-		public wallet: Wallet,
-		public rewards: string[]
-	) {}
+		private chats: string[] | undefined,
+		private wallet: IWallet,
+		public rewards: string[],
+    private app_name?: string
+	) {
+    this.links = wallet.getPublicLinks();
+  }
 
 	setStatus(status: NoticeStatus) {
 		this.status = status;
@@ -119,8 +86,9 @@ export default class Notice {
         text += '🔥 ';
         break;
 		}
-		text += `<b>#${this.wallet.network.toUpperCase()} #${this.status.toUpperCase()}</b>\n`;
-    text += `<tg-spoiler><b>${this.wallet.config.address}</b></tg-spoiler>\n`;
+		text += `<b>#${this.wallet.w.network.toUpperCase()} #${this.status.toUpperCase()}</b>\n`;
+    if (this.app_name) text += `<b>App: #${this.app_name}</b>\n`;
+    text += `<tg-spoiler><b>${this.wallet.getAddress()}</b></tg-spoiler>\n`;
     if (this.balance != -1) text += `Balance: ${this.balance}\n`;
 
     if (this.rewards.length) {
@@ -148,17 +116,17 @@ export default class Notice {
       inline_keyboard: [ [] ]
     };
 
-    if (links[this.wallet.network]?.address) {
+    if (this.links?.address) {
       reply_markup.inline_keyboard[0].push({
         text: 'Wallet',
-        url: links[this.wallet.network].address + this.wallet.config.address
+        url: this.links.address + this.wallet.getAddress()
       });
     }
 
-    if (links[this.wallet.network]?.tx && this.txhash) {
+    if (this.links?.tx && this.txhash) {
       reply_markup.inline_keyboard[0].push({
         text: 'Transaction',
-        url: links[this.wallet.network].tx + this.txhash
+        url: this.links.tx + this.txhash
       });
     }
 

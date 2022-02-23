@@ -2,10 +2,12 @@ import * as Profile from "../types/Profile";
 import { Address, MaskAddress } from "./Address";
 import Secret from "./protection/Secret";
 import { BuildedTx } from "../types/BuildedTx";
+import { NetworkLinks } from "./Notice";
 
 export interface IWallet {
 	w: Profile.Wallet
 	
+	getPublicLinks (): NetworkLinks
 	getAddress (): Address
 	getPublicName (): string
 	balance (): Promise<number>
@@ -16,6 +18,8 @@ export interface IWallet {
 	setTargetValidator (address: string): void
 
 	restakeRewards (rewards: any): Promise<BuildedTx | null>
+	simulateTransaction (tx: any): Promise<string>
+	signTransaction (tx: any): Promise<any>
 	sendTx (tx_bytes: Uint8Array | string | unknown): Promise<string>
 	pendingTx (hash: string): Promise<void>
 }

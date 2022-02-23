@@ -10,10 +10,18 @@ import { CosmosRewards } from "../../../../types/CosmosRewards";
 import { BuildedTx } from "../../../../types/BuildedTx";
 import { Coin as CoinStruct } from "../../../../types/Coin";
 import { Address, MaskAddress } from "../../../Address";
+import { NetworkLinks } from "../../../Notice";
 
 export default class Cosmos_legacy extends Wallet implements IWallet {
   protected prefix: string = 'cosmos';
   protected nativeDenom: string = 'uatom';
+
+  getPublicLinks (): NetworkLinks {
+    return {
+      address: 'https://www.mintscan.io/cosmos/account/',
+      tx: 'https://www.mintscan.io/cosmos/txs/'
+    }
+  }
 
   extractAddress () {
     const pubKey = WalletMethods.PrivateKey.fromHex(this.secret.getKey()).toPubkey().toAddress().toHex();
@@ -171,6 +179,17 @@ export default class Cosmos_legacy extends Wallet implements IWallet {
       fee: parseInt(_feeAmount) / 1e6
     }
     
+  }
+
+  async signTransaction (tx: Transaction) {
+    const privateKey = WalletMethods.PrivateKey.fromHex(this.secret.getKey());
+    const pubkey = privateKey.toPubkey();
+
+    const signDoc = tx.getSignDoc(pubkey);
+    const signature = privateKey.sign(signDoc);
+    const txRawBytes = tx.getTxData(signature, pubkey);
+
+    return txRawBytes;
   }
 
   async sendTx (tx_bytes: Uint8Array | string): Promise<string> {

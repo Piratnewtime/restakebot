@@ -1,6 +1,6 @@
 import clc from "cli-color";
 import { readdirSync } from "fs";
-import Wallet, { IWalletConstructable } from "../Wallet";
+import App, { IAppConstructable } from "../App";
 
 const exceptions = [
 	'index.js',
@@ -9,18 +9,18 @@ const exceptions = [
 
 const files = readdirSync(__dirname).filter(path => !exceptions.includes(path));
 
-type WalletsList = {
-	[key: string]: IWalletConstructable
+type AppsList = {
+	[key: string]: IAppConstructable
 };
 
-const list: WalletsList = {};
+const list: AppsList = {};
 
 files.forEach(path => {
 	const key = path.replace('.js', '');
 	let module = require(__dirname + (__dirname.includes('/') ? '/' : '\\') + path);
 	module = typeof module == 'object' && module.default;
-	if (!module || !Wallet.isPrototypeOf(module)) {
-		console.error(clc.red('Failed autoload wallet class: ' + path), module);
+	if (!module || !App.isPrototypeOf(module)) {
+		console.error(clc.red('Failed autoload app class: ' + path), module);
 		return;
 	}
 	list[key.toLowerCase()] = module;
