@@ -214,14 +214,15 @@ export default class Cosmos_legacy extends Wallet implements IWallet {
 				if (res.code && res.raw_log) throw res.raw_log;
 				return;
 			} catch (axiosError: any) {
-				if (axiosError.isAxiosError && axiosError.response.status === 400) {
-					if (axiosError.response.data?.code === 3) {
-						continue;
-					} else {
-						throw axiosError.response.data.message;
-					}
+				if (!axiosError.isAxiosError) throw axiosError;
+				const http_code = axiosError.response.status;
+				const err_code = axiosError.response.data?.code;
+				if (http_code === 400 && err_code === 3) {
+					continue;
+				} else if (http_code === 500 && err_code === 2) {
+					continue;
 				}
-				throw axiosError;
+				throw axiosError.response?.data?.message ?? axiosError;
 			}
 		} while (Date.now() - startTime < timeout);
 		throw 'Transaction wasn\'t found, timeout exceeded';
