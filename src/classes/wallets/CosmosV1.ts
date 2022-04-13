@@ -8,7 +8,11 @@ import { BuildedTx } from "../../types/BuildedTx";
 
 export class CosmosV1 extends Wallet implements IWallet {
 	async balance (): Promise<number> {
-		return (await axios.get(`${this.host}/cosmos/bank/v1beta1/balances/${this.address}/${this.nativeDenom}`, { timeout: 20000 })).data.balance.amount / 1e6;
+		const data = (await axios.get(`${this.host}/cosmos/bank/v1beta1/balances/${this.address}?by_denom=${this.nativeDenom}`, { timeout: 20000 })).data;
+    if (data.balances?.length) {
+      return parseInt(data.balances[0].amount) / 1e6;
+    }
+    return 0;
 	}
 
 	async rewards (): Promise<CosmosRewards> {
@@ -169,14 +173,13 @@ export class CosmosV1 extends Wallet implements IWallet {
         if (res.code && res.raw_log) throw res.raw_log;
         return;
       } catch (axiosError: any) {
-        if (axiosError.isAxiosError && axiosError.response.status === 400) {
-          if (axiosError.response.data?.code === 3) {
-            continue;
-          } else {
-            throw axiosError.response.data.message;
-          }
-        }
-        throw axiosError;
+        if (!axiosError.isAxiosError) throw axiosError;
+				const http_code = axiosError.response.status;
+				const err_code = axiosError.response.data?.code;
+				if ([400, 404, 500].includes(http_code) && err_code) {
+					continue;
+				}
+				throw axiosError.response?.data?.message ?? axiosError;
       }
     } while (Date.now() - startTime < timeout);
     throw 'Transaction wasn\'t found, timeout exceeded';

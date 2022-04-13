@@ -19,8 +19,13 @@ const bandchain_js_1 = require("@bandprotocol/bandchain.js");
 const Wallet_1 = __importDefault(require("./Wallet"));
 class CosmosV1 extends Wallet_1.default {
     balance() {
+        var _a;
         return __awaiter(this, void 0, void 0, function* () {
-            return (yield axios_1.default.get(`${this.host}/cosmos/bank/v1beta1/balances/${this.address}/${this.nativeDenom}`, { timeout: 20000 })).data.balance.amount / 1e6;
+            const data = (yield axios_1.default.get(`${this.host}/cosmos/bank/v1beta1/balances/${this.address}?by_denom=${this.nativeDenom}`, { timeout: 20000 })).data;
+            if ((_a = data.balances) === null || _a === void 0 ? void 0 : _a.length) {
+                return parseInt(data.balances[0].amount) / 1e6;
+            }
+            return 0;
         });
     }
     rewards() {
@@ -147,7 +152,7 @@ class CosmosV1 extends Wallet_1.default {
         });
     }
     pendingTx(hash) {
-        var _a;
+        var _a, _b, _c, _d;
         return __awaiter(this, void 0, void 0, function* () {
             const startTime = Date.now();
             const timeout = 72 * 3600 * 1000;
@@ -160,15 +165,14 @@ class CosmosV1 extends Wallet_1.default {
                     return;
                 }
                 catch (axiosError) {
-                    if (axiosError.isAxiosError && axiosError.response.status === 400) {
-                        if (((_a = axiosError.response.data) === null || _a === void 0 ? void 0 : _a.code) === 3) {
-                            continue;
-                        }
-                        else {
-                            throw axiosError.response.data.message;
-                        }
+                    if (!axiosError.isAxiosError)
+                        throw axiosError;
+                    const http_code = axiosError.response.status;
+                    const err_code = (_a = axiosError.response.data) === null || _a === void 0 ? void 0 : _a.code;
+                    if ([400, 404, 500].includes(http_code) && err_code) {
+                        continue;
                     }
-                    throw axiosError;
+                    throw (_d = (_c = (_b = axiosError.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.message) !== null && _d !== void 0 ? _d : axiosError;
                 }
             } while (Date.now() - startTime < timeout);
             throw 'Transaction wasn\'t found, timeout exceeded';
