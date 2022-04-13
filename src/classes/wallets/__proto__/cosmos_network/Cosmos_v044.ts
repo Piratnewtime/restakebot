@@ -8,7 +8,11 @@ export default class Cosmos_v044 extends Cosmos_legacy {
 	protected nativeDenom: string = 'uatom';
 
 	async balance (): Promise<number> {
-		return (await axios.get(`${this.host}/cosmos/bank/v1beta1/balances/${this.getAddress()}/${this.nativeDenom}`, { timeout: 20000 })).data.balance.amount / 1e6;
+		const data = (await axios.get(`${this.host}/cosmos/bank/v1beta1/balances/${this.getAddress()}?by_denom=${this.nativeDenom}`, { timeout: 20000 })).data;
+    if (data.balances?.length) {
+      return parseInt(data.balances[0].amount) / 1e6;
+    }
+    return 0;
 	}
 
 	async rewards (): Promise<CosmosRewards> {
