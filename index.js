@@ -1,5 +1,8 @@
 "use strict";
 switch (process.argv[2]) {
+	case 'web':
+		require('./dist/webpanel');
+		break;
 	case 'init':
 		require('./dist/init');
 		break;
