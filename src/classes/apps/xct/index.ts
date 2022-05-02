@@ -4,7 +4,7 @@ import Web3 from "web3";
 import { Contract } from 'web3-eth-contract';
 import { BuildedTx } from "../../../types/BuildedTx";
 
-import App, { AppWallet, AppWalletsAccess, IApp } from "../../App";
+import App, { AppWallet, AppWalletsAccess, IApp, AppDescription } from "../../App";
 
 const TokenLockerAbi = require('../../../../resources/xct/TokenLocker.json');
 const RewardingAbi = require('../../../../resources/xct/Rewarding.json');
@@ -186,5 +186,15 @@ export default class Xct extends App implements IApp {
 			gas: parseInt(simulated_gas),
 			fee: parseFloat(new BigNumber(tx.gas).times(gasPrice).div(1e18).toFixed(18))
 		}
+	}
+
+	static describeApp (): AppDescription {
+		const data = new AppDescription();
+		data.addParamNumber('trigger');
+		data.addParamNumber('privateSale1');
+		data.addParamNumber('privateSale2');
+		data.addParamNumber('advisors');
+		data.addParamNumber('team');
+		return data;
 	}
 }

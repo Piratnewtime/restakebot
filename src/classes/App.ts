@@ -14,6 +14,7 @@ export interface IApp {
 
 export interface IAppConstructable {
 	new (wallets: AppWalletsAccess, params: unknown): IApp
+	describeApp (): AppDescription
 }
 
 type ProcessOptions = {
@@ -21,6 +22,49 @@ type ProcessOptions = {
 	rewards: string[],
 	buildTx: () => Promise<BuildedTx>
 };
+
+type AppDescribeParam = {
+	key: string,
+	type: 'string' | 'number',
+	defaultValue: any
+}
+
+export type AppDescribeProfile = {
+	app: string,
+	isSingleWallet: boolean,
+	params: AppDescribeParam[]
+}
+
+export class AppDescription {
+	
+	protected params: AppDescribeParam[] = [] 
+
+	constructor (protected isSingleWallet: boolean = false) {}
+
+	toJSON () {
+		return {
+			isSingleWallet: this.isSingleWallet,
+			params: this.params
+		}
+	}
+
+	addParamString (key: string, defaultValue: string = '') {
+		this.params.push({
+			key,
+			type: 'string',
+			defaultValue
+		});
+	}
+
+	addParamNumber (key: string, defaultValue: number = 0) {
+		this.params.push({
+			key,
+			type: 'number',
+			defaultValue
+		});
+	}
+
+}
 
 export default class App {
 	protected noticeProvider: NoticeProvider | null = null;

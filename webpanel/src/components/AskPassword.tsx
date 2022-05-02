@@ -64,6 +64,7 @@ export default class AskPassword extends Component<Props, State> {
 						type="password"
 						value={this.state.value}
 						onChange={this.onChange}
+						autoFocus={true}
 					/>
 				</Form>
 			</Modal.Body>

@@ -20,9 +20,17 @@ export type Wallet = WalletProps & {
 	interval?: number
 }
 
+export type WalletDefaultConfigs = {
+	network: string,
+	host: string,
+	gasPrice: number,
+	prefix: string,
+	nativeDenom: string
+}
+
 export type App = {
 	app: string,
 	alias?: string,
 	wallets: string[],
-	params: unknown
+	params: any
 }

@@ -8,13 +8,25 @@ import { WalletProps } from './types/Profile';
 const walletsList: WalletProps[] = [];
 
 for (const network in wallets) {
+	if (!wallets[network].defaultConfig) continue;
 	const wallet: WalletProps = {
-		network
+		network,
+		...wallets[network].defaultConfig()
 	};
 	walletsList.push(wallet);
 }
 
-console.log(walletsList, apps);
+const appsList: any[] = [];
+for (const app_code in apps) {
+	const app = apps[app_code];
+	app.describeApp()
+	appsList.push({
+		app: app_code,
+		...app.describeApp().toJSON()
+	});
+}
+
+console.log(walletsList, appsList);
 
 const app = express();
 
@@ -24,12 +36,12 @@ app.disable('x-powered-by');
 
 app.use(express.static('webpanel/build'));
 
-app.get('/wallets', (req, res) => {
+app.get('/wallets', (_req, res) => {
 	res.json(walletsList);
 });
 
-app.get('/apps', (req, res) => {
-	res.send('Ok');
+app.get('/apps', (_req, res) => {
+	res.json(appsList);
 });
 
 const server = app.listen(app.get('port'), function () {

@@ -6,10 +6,11 @@ import InputGroup from 'react-bootstrap/InputGroup';
 import Button from 'react-bootstrap/Button';
 
 import Input from "./Input";
+import ListTriggers from "./ListTriggers";
 
-import { Wallet, WalletProps } from '../../../src/types/Profile';
+import { Wallet, WalletDefaultConfigs } from '../../../src/types/Profile';
 
-type SelectWalletProps = { list: WalletProps[], fnAdd: (network: number) => void };
+type SelectWalletProps = { list: WalletDefaultConfigs[], fnAdd: (network: number) => void };
 type SelectWalletState = { value: number };
 
 export class SelectWallet extends Component<SelectWalletProps, SelectWalletState> {
@@ -49,7 +50,8 @@ export class SelectWallet extends Component<SelectWalletProps, SelectWalletState
 type WalletItemProps = {
 	index: number,
 	data: Wallet,
-	onChange: (wallet_index: number, wallet: Wallet) => boolean
+	onChange: (wallet_index: number, wallet: Wallet) => boolean,
+	del: (wallet_index: number) => boolean
 };
 
 export class WalletItem extends Component<WalletItemProps> {
@@ -58,6 +60,10 @@ export class WalletItem extends Component<WalletItemProps> {
 		super(props);
 
 		this.onChangeConfig = this.onChangeConfig.bind(this);
+
+		this.addTrigger = this.addTrigger.bind(this);
+		this.delTrigger = this.delTrigger.bind(this);
+		this.changeTrigger = this.changeTrigger.bind(this);
 	}
 
 	onChangeConfig(key: 'id' | 'host' | 'gasPrice' | 'key' | 'address' | 'alias', value: string) {
@@ -90,8 +96,27 @@ export class WalletItem extends Component<WalletItemProps> {
 		this.props.onChange(this.props.index, data);
 	}
 
+	addTrigger() {
+		const data = this.props.data;
+		data.triggers.push({ denom: '', amount: '' });
+		this.props.onChange(this.props.index, data);
+	}
+
+	delTrigger(index: number) {
+		const data = this.props.data;
+		data.triggers.splice(index, 1);
+		this.props.onChange(this.props.index, data);
+	}
+
+	changeTrigger(index: number, key: 'amount' | 'denom', value: string) {
+		const data = this.props.data;
+		data.triggers[index][key] = value;
+		this.props.onChange(this.props.index, data);
+	}
+
 	render() {
 		const id = this.props.data.id;
+		const triggers = this.props.data.triggers;
 		const {
 			host,
 			gasPrice,
@@ -120,6 +145,11 @@ export class WalletItem extends Component<WalletItemProps> {
 				<Input label='ID (optional)' param='id' value={id ?? ''} onChange={this.onChangeConfig} />
 				<hr />
 				<p style={{textAlign: 'center'}}><small>Triggers</small></p>
+				<ListTriggers list={triggers} add={this.addTrigger} del={this.delTrigger} update={this.changeTrigger} />
+				<hr />
+				<p className="text-center">
+					<Button variant="danger" size="sm" onClick={() => this.props.del(this.props.index)}>Delete</Button>
+				</p>
 			</Accordion.Body>
 		</Accordion.Item>);
 	}

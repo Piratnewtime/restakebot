@@ -8,25 +8,37 @@ import Card from 'react-bootstrap/Card';
 import Button from 'react-bootstrap/Button';
 
 import { SelectWallet, WalletItem } from './components/Wallet';
+import { SelectApp, AppItem } from './components/App';
+import Interval from './components/Interval';
 
-import { Wallet, WalletProps } from '../../src/types/Profile';
+import { Wallet, App, WalletDefaultConfigs } from '../../src/types/Profile';
+import { AppDescribeProfile } from '../../src/classes/App';
 
 import AskPassword from './components/AskPassword';
+import ProcessStatus from './components/ProcessStatus';
 import Cryptr from "cryptr";
-import zlib from "react-zlib-js";
+import zlib from "zlib";
 
 interface ProfileContext {
-	wallets: Wallet[]
+	wallets: Wallet[],
+	apps: App[],
+	interval: number,
+	telegram?: {
+		token: string,
+		chats: string[]
+	}
 }
 
 interface Context {
-	wallets?: WalletProps[],
-	apps?: any,
+	wallets: WalletDefaultConfigs[],
+	apps: AppDescribeProfile[],
 	profile: ProfileContext,
 	
 	isAskPassword: boolean,
-	askPasswordResolver: Function | null
-	askPasswordRejecter: Function | null
+	askPasswordResolver: Function | null,
+	askPasswordRejecter: Function | null,
+
+	processText: string
 }
 
 function encrypt (cryptr: Cryptr, password: string): string {
@@ -39,6 +51,8 @@ function decrypt (cryptr: Cryptr, base64: string): string {
 	return cryptr.decrypt(hex);
 }
 
+const defaultInderval = 3600;
+
 export default class Profile extends Component<{}, Context> {	
 
 	//private AskPassword = new AskPassword();
@@ -47,22 +61,39 @@ export default class Profile extends Component<{}, Context> {
 		super({});
 
 		this.state = {
+			wallets: [],
+			apps: [],
 			profile: {
-				wallets: []
+				wallets: [],
+				apps: [],
+				interval: defaultInderval
 			},
 			isAskPassword: false,
 			askPasswordResolver: null,
-			askPasswordRejecter: null
+			askPasswordRejecter: null,
+			processText: ''
 		};
 
 		this.addWallet = this.addWallet.bind(this);
 		this.editWallet = this.editWallet.bind(this);
+		this.delWallet = this.delWallet.bind(this);
+
+		this.addApp = this.addApp.bind(this);
+		this.editApp = this.editApp.bind(this);
+		this.delApp = this.delApp.bind(this);
+
+		this.editInterval = this.editInterval.bind(this);
+
 		this.download = this.download.bind(this);
 		this.import = this.import.bind(this);
 		this.askPassword = this.askPassword.bind(this);
 
 		axios.get('/wallets').then(({ data }) => {
 			this.setState({ wallets: data });
+		});
+
+		axios.get('/apps').then(({ data }) => {
+			this.setState({ apps: data });
 		});
 	}
 
@@ -90,14 +121,19 @@ export default class Profile extends Component<{}, Context> {
 		const wallet: Wallet = {
 			network: base.network,
 			config: {
-				host: '',
-				gasPrice: 0,
+				host: base.host,
+				gasPrice: base.gasPrice,
 				key: {
 					type: '',
 					value: ''
 				}
 			},
-			triggers: []
+			triggers: [
+				{
+					amount: '0',
+					denom: base.nativeDenom
+				}
+			]
 		};
 		this.state.profile.wallets.push(wallet);
 		this.setState({
@@ -111,6 +147,63 @@ export default class Profile extends Component<{}, Context> {
 		if (!this.state.profile.wallets?.[wallet_index]) return false;
 		const profile = this.state.profile;
 		profile.wallets[wallet_index] = wallet;
+		this.setState({ profile });
+		return true;
+	}
+
+	delWallet(wallet_index: number) {
+		if (!this.state.profile) return false;
+		if (!this.state.profile.wallets?.[wallet_index]) return false;
+		if (!prompt('Confirm removing the wallet from your config')) return false;
+		const profile = this.state.profile;
+		profile.wallets.splice(wallet_index, 1);
+		this.setState({ profile });
+		alert('Wallet was deleted');
+		return true;
+	}
+
+	addApp(app_index: number) {
+		if (!this.state.profile) return false;
+		const apps = this.state.apps;
+		if (typeof apps === 'undefined') return false;
+		const base = apps[app_index];
+		const app: App = {
+			app: base.app,
+			alias: '',
+			wallets: [''],
+			params: {}
+		};
+		this.state.profile.apps.push(app);
+		this.setState({
+			profile: this.state.profile
+		});
+		return true;
+	}
+
+	editApp(app_index: number, app: App) {
+		if (!this.state.profile) return false;
+		if (!this.state.profile.apps?.[app_index]) return false;
+		const profile = this.state.profile;
+		profile.apps[app_index] = app;
+		this.setState({ profile });
+		return true;
+	}
+
+	delApp(app_index: number) {
+		if (!this.state.profile) return false;
+		if (!this.state.profile.apps?.[app_index]) return false;
+		if (!prompt('Confirm removing the app from your config')) return false;
+		const profile = this.state.profile;
+		profile.apps.splice(app_index, 1);
+		this.setState({ profile });
+		alert('App was deleted');
+		return true;
+	}
+
+	editInterval(value: string) {
+		if (!this.state.profile) return false;
+		const profile = this.state.profile;
+		profile.interval = parseInt(value);
 		this.setState({ profile });
 		return true;
 	}
@@ -146,7 +239,7 @@ export default class Profile extends Component<{}, Context> {
 								if (!obj) throw new Error('Couldn\'t parse file');
 
 								const password = await that.askPassword();
-								console.log('Password', password);
+								await new Promise(tick => setTimeout(tick, 200));
 								const cryptr = new Cryptr(password);
 
 								// Rewrite props
@@ -154,14 +247,28 @@ export default class Profile extends Component<{}, Context> {
 
 								that.setState({
 									profile: {
-										wallets: []
+										wallets: [],
+										apps: [],
+										interval: defaultInderval
 									}
 								});
+
+								const interval = fillerNumber(obj.interval);
+
+								let totalDecode = 0, currentDecode = 0;
+
+								if (obj.wallets && obj.wallets instanceof Array) {
+									for (const wallet of obj.wallets) {
+										if (!wallet || typeof wallet !== 'object') continue;
+										if (wallet.config.key.value) totalDecode++;
+									}
+								}
 
 								if (obj.wallets && obj.wallets instanceof Array) {
 									for (const w of obj.wallets) {
 										if (!w || typeof w !== 'object') continue;
 										const wallet: Wallet = {
+											id: fillerString(w.id),
 											network: fillerString(w.network),
 											config: {
 												host: fillerString(w.config?.host),
@@ -177,9 +284,14 @@ export default class Profile extends Component<{}, Context> {
 										};
 										if (wallet.config.key.value) {
 											try {
+												console.log('Try to decrypt', wallet);
+												currentDecode++;
+												that.setState({ processText: `Decrypting ${currentDecode} of ${totalDecode} secret keys, please wait...` });
+												await new Promise(tick => setTimeout(tick, 50));
 												wallet.config.key.value = decrypt(cryptr, wallet.config.key.value);
-											} catch {
-												throw new Error('Incorrect password');
+											} catch (e) {
+												console.error(e);
+												throw new Error('Failed decryption');
 											}
 										}
 										if (w.triggers instanceof Array) {
@@ -196,19 +308,37 @@ export default class Profile extends Component<{}, Context> {
 									}
 								}
 
-								console.log('Imported', wallets);
+								const apps: App[] = [];
+
+								if (obj.apps && obj.apps instanceof Array) {
+									for (const a of obj.apps) {
+										if (!a || typeof a !== 'object') continue;
+										const app: App = {
+											app: fillerString(a.app),
+											alias: fillerString(a.alias),
+											wallets: a.wallets instanceof Array ? a.wallets.map(fillerString).filter(Boolean) : [],
+											params: a.params
+										};
+										apps.push(app);
+									}
+								}
+
+								console.log('Imported', wallets, apps);
 
 								await new Promise(tick => setTimeout(tick, 10));
 
 								that.setState({
 									profile: {
-										wallets
+										wallets,
+										apps,
+										interval
 									}
 								});
 							} catch (e) {
 								console.error('Failed import', e);
 								alert(e);
 							}
+							that.setState({ processText: '' });
 							i.remove();
 						};
 						fr.readAsText(this.files[0]);
@@ -216,35 +346,82 @@ export default class Profile extends Component<{}, Context> {
 					i.click();
 	}
 
-	download() {
-		const json = JSON.stringify(this.state.profile, undefined, 2);
-		const file = new Blob([json], { type: 'application/json' });
-		const a = document.createElement('a');
-				  a.href = URL.createObjectURL(file);
-				  a.download = 'profile_' + Date.now() + '.json';
-				  a.click();
+	async download() {
+		const clone = JSON.parse(JSON.stringify(this.state.profile));
+
+		let totalEncode = 0, currentEncode = 0;
+
+		try {
+
+			for (const wallet of clone.wallets) {
+				if (wallet.config.key.value) totalEncode++;
+			}
+
+			if (totalEncode) {
+				const password = await this.askPassword();
+				await new Promise(tick => setTimeout(tick, 200));
+				const cryptr = new Cryptr(password);
+
+				for (const wallet of clone.wallets) {
+					if (!wallet.config.key.value) continue;
+					try {
+						console.log('Try to decrypt', wallet);
+						currentEncode++;
+						this.setState({ processText: `Encrypting ${currentEncode} of ${totalEncode} secret keys, please wait...` });
+						await new Promise(tick => setTimeout(tick, 50));
+						wallet.config.key.value = encrypt(cryptr, wallet.config.key.value);
+					} catch (e) {
+						console.error(e);
+						throw new Error('Failed encryption');
+					}
+				}
+			}
+
+			this.setState({ processText: `Downloading...` });
+			await new Promise(tick => setTimeout(tick, 50));
+
+			const json = JSON.stringify(clone, undefined, 2);
+			const file = new Blob([json], { type: 'application/json' });
+			const a = document.createElement('a');
+					a.href = URL.createObjectURL(file);
+					a.download = 'profile_' + Date.now() + '.json';
+					a.click();
+
+		} catch (e) {
+			console.error('Failed download', e);
+			alert(e);
+		}
+		this.setState({ processText: '' });
 	}
 
 	render() {
-		if (!this.state?.wallets) return <i>Loading 1 / 2</i>;
-		//if (!this.state?.apps) return <i>Loading 2 / 2</i>;
+		if (!this.state?.wallets?.length) return <i>Loading 1 / 2</i>;
+		if (!this.state?.apps?.length) return <i>Loading 2 / 2</i>;
 		return (<Row>
 			<Col className={'mb-5'} sm={12} lg={7}>
 				<AskPassword show={this.state.isAskPassword} resolve={this.state.askPasswordResolver} reject={this.state.askPasswordRejecter} />
+				<ProcessStatus text={this.state.processText} />
 				<Card>
-					<Card.Header>Wallets <Button onClick={this.download}>Save</Button> <Button onClick={this.import}>Import</Button></Card.Header>
+					<Card.Header>Wallets <Button onClick={this.download}>Download</Button> <Button onClick={this.import}>Import</Button></Card.Header>
 					<Card.Body>
 						<Accordion className={'mb-3'}>
-							{this.state.profile?.wallets.map((item, index) => <WalletItem index={index} data={item} onChange={this.editWallet} />)}
+							{this.state.profile?.wallets.map((item, index) => <WalletItem index={index} data={item} onChange={this.editWallet} del={this.delWallet} />)}
 						</Accordion>
 						<SelectWallet list={this.state.wallets} fnAdd={this.addWallet} />
+						<hr />
+						<Interval value={this.state.profile.interval} onChange={this.editInterval} />
 					</Card.Body>
 				</Card>
 			</Col>
 			<Col>
-				<Card>
+				<Card border="danger">
 					<Card.Header>Apps</Card.Header>
-					<Card.Body></Card.Body>
+					<Card.Body>
+						<Accordion className={'mb-3'}>
+							{this.state.profile?.apps.map((item, index) => <AppItem index={index} data={item} apps={this.state.apps} onChange={this.editApp} del={this.delApp} />)}
+						</Accordion>
+						<SelectApp list={this.state.apps} fnAdd={this.addApp} />
+					</Card.Body>
 				</Card>
 			</Col>
 		</Row>);
