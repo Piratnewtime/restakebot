@@ -10,6 +10,7 @@ import Button from 'react-bootstrap/Button';
 import { SelectWallet, WalletItem } from './components/Wallet';
 import { SelectApp, AppItem } from './components/App';
 import Interval from './components/Interval';
+import Telegram from './components/Telegram';
 
 import { Wallet, App, WalletDefaultConfigs } from '../../src/types/Profile';
 import { AppDescribeProfile } from '../../src/classes/App';
@@ -18,6 +19,7 @@ import AskPassword from './components/AskPassword';
 import ProcessStatus from './components/ProcessStatus';
 import Cryptr from "cryptr";
 import zlib from "zlib";
+import { TelegramConfig } from '../../src/types/TelegramConfig';
 
 interface ProfileContext {
 	wallets: Wallet[],
@@ -84,9 +86,12 @@ export default class Profile extends Component<{}, Context> {
 
 		this.editInterval = this.editInterval.bind(this);
 
+		this.setTelegram = this.setTelegram.bind(this);
+
 		this.download = this.download.bind(this);
 		this.import = this.import.bind(this);
 		this.askPassword = this.askPassword.bind(this);
+		this.setProcessText = this.setProcessText.bind(this);
 
 		axios.get('/wallets').then(({ data }) => {
 			this.setState({ wallets: data });
@@ -208,6 +213,22 @@ export default class Profile extends Component<{}, Context> {
 		return true;
 	}
 
+	setTelegram(config?: TelegramConfig) {
+		if (!this.state.profile) return false;
+		const profile = this.state.profile;
+		if (config) {
+			profile.telegram = config;
+		} else {
+			delete profile.telegram;
+		}
+		this.setState({ profile });
+		return true;
+	}
+
+	setProcessText(text: string) {
+		this.setState({ processText: text });
+	}
+
 	import() {
 		console.log('Import');
 		const that = this;
@@ -249,7 +270,8 @@ export default class Profile extends Component<{}, Context> {
 									profile: {
 										wallets: [],
 										apps: [],
-										interval: defaultInderval
+										interval: defaultInderval,
+										telegram: undefined
 									}
 								});
 
@@ -262,6 +284,11 @@ export default class Profile extends Component<{}, Context> {
 										if (!wallet || typeof wallet !== 'object') continue;
 										if (wallet.config.key.value) totalDecode++;
 									}
+								}
+
+								if (obj.telegram) {
+									if (obj.telegram.token) totalDecode++;
+									totalDecode += obj.telegram.chats instanceof Array ? obj.telegram.chats.length : 0;
 								}
 
 								if (obj.wallets && obj.wallets instanceof Array) {
@@ -323,7 +350,25 @@ export default class Profile extends Component<{}, Context> {
 									}
 								}
 
-								console.log('Imported', wallets, apps);
+								let telegram: TelegramConfig | undefined = undefined;
+
+								if (obj.telegram) {
+									telegram = { token: '', chats: [] };
+									if (obj.telegram.token) {
+										currentDecode++;
+										that.setState({ processText: `Decrypting ${currentDecode} of ${totalDecode} secret keys, please wait...` });
+										await new Promise(tick => setTimeout(tick, 50));
+										telegram.token = decrypt(cryptr, obj.telegram.token);
+									}
+									if (obj.telegram.chats instanceof Array) {
+										for (const chat_id of obj.telegram.chats.filter(Boolean)) {
+											currentDecode++;
+											that.setState({ processText: `Decrypting ${currentDecode} of ${totalDecode} secret keys, please wait...` });
+											await new Promise(tick => setTimeout(tick, 50));
+											telegram.chats.push(decrypt(cryptr, chat_id));
+										}
+									}
+								}
 
 								await new Promise(tick => setTimeout(tick, 10));
 
@@ -331,7 +376,8 @@ export default class Profile extends Component<{}, Context> {
 									profile: {
 										wallets,
 										apps,
-										interval
+										interval,
+										telegram
 									}
 								});
 							} catch (e) {
@@ -357,6 +403,12 @@ export default class Profile extends Component<{}, Context> {
 				if (wallet.config.key.value) totalEncode++;
 			}
 
+			if (clone.telegram) {
+				if (clone.telegram.token) totalEncode++;
+				clone.telegram.chats = clone.telegram.chats instanceof Array ? clone.telegram.chats.filter(Boolean) : [];
+				totalEncode += clone.telegram.chats.length;
+			}
+
 			if (totalEncode) {
 				const password = await this.askPassword();
 				await new Promise(tick => setTimeout(tick, 200));
@@ -365,7 +417,6 @@ export default class Profile extends Component<{}, Context> {
 				for (const wallet of clone.wallets) {
 					if (!wallet.config.key.value) continue;
 					try {
-						console.log('Try to decrypt', wallet);
 						currentEncode++;
 						this.setState({ processText: `Encrypting ${currentEncode} of ${totalEncode} secret keys, please wait...` });
 						await new Promise(tick => setTimeout(tick, 50));
@@ -374,6 +425,23 @@ export default class Profile extends Component<{}, Context> {
 						console.error(e);
 						throw new Error('Failed encryption');
 					}
+				}
+
+				if (clone.telegram) {
+					if (clone.telegram.token) {
+						currentEncode++;
+						this.setState({ processText: `Encrypting ${currentEncode} of ${totalEncode} secret keys, please wait...` });
+						await new Promise(tick => setTimeout(tick, 50));
+						clone.telegram.token = encrypt(cryptr, clone.telegram.token);
+					}
+					const chats = [];
+					for (const chat_id of clone.telegram.chats) {
+						currentEncode++;
+						this.setState({ processText: `Encrypting ${currentEncode} of ${totalEncode} secret keys, please wait...` });
+						await new Promise(tick => setTimeout(tick, 50));
+						chats.push(encrypt(cryptr, chat_id));
+					}
+					clone.telegram.chats = chats;
 				}
 			}
 
@@ -421,6 +489,13 @@ export default class Profile extends Component<{}, Context> {
 							{this.state.profile?.apps.map((item, index) => <AppItem index={index} data={item} apps={this.state.apps} onChange={this.editApp} del={this.delApp} />)}
 						</Accordion>
 						<SelectApp list={this.state.apps} fnAdd={this.addApp} />
+					</Card.Body>
+				</Card>
+
+				<Card className="mt-3" border="primary">
+					<Card.Header>Telegram</Card.Header>
+					<Card.Body>
+						<Telegram data={this.state.profile.telegram} set={this.setTelegram} setProcessText={this.setProcessText} />
 					</Card.Body>
 				</Card>
 			</Col>
