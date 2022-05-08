@@ -102,6 +102,12 @@ export default class Profile extends Component<{}, Context> {
 		});
 	}
 
+	componentDidMount() {
+		window.onbeforeunload = function() {
+			return 'You can lose your changes!';
+		};
+	}
+
 	askPassword(): Promise<string> {
 		const state: any = { isAskPassword: true };
 		const prom = new Promise<string>((resolve, reject) => {
@@ -159,7 +165,7 @@ export default class Profile extends Component<{}, Context> {
 	delWallet(wallet_index: number) {
 		if (!this.state.profile) return false;
 		if (!this.state.profile.wallets?.[wallet_index]) return false;
-		if (!prompt('Confirm removing the wallet from your config')) return false;
+		if (!window.confirm('Confirm removing the wallet from your config')) return false;
 		const profile = this.state.profile;
 		profile.wallets.splice(wallet_index, 1);
 		this.setState({ profile });
@@ -197,7 +203,7 @@ export default class Profile extends Component<{}, Context> {
 	delApp(app_index: number) {
 		if (!this.state.profile) return false;
 		if (!this.state.profile.apps?.[app_index]) return false;
-		if (!prompt('Confirm removing the app from your config')) return false;
+		if (!window.confirm('Confirm removing the app from your config')) return false;
 		const profile = this.state.profile;
 		profile.apps.splice(app_index, 1);
 		this.setState({ profile });

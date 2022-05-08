@@ -32,6 +32,10 @@ export default class AskPassword extends Component<Props, State> {
 	resolve(e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) {
 		e.preventDefault();
 		const value = this.state.value;
+		if (value.length < 6) {
+			alert('Your password cannot be less than 6 charsets');
+			return;
+		}
 		this.setState({ value: '' });
 		if (!this.props.resolve) return;
 		this.props.resolve(value);

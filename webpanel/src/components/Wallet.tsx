@@ -138,7 +138,7 @@ export class WalletItem extends Component<WalletItemProps> {
 			<Accordion.Body>
 				<Input label='Host' param='host' value={host} onChange={this.onChangeConfig} />
 				<Input label='Gas Price' param='gasPrice' value={gasPrice.toString()} onChange={this.onChangeConfig} />
-				<Input label='Private key' param='key' value={key} onChange={this.onChangeConfig} />
+				<Input private label='Private key' param='key' value={key} onChange={this.onChangeConfig} />
 				<hr />
 				<Input label='Address (optional)' param='address' value={address ?? ''} onChange={this.onChangeConfig} />
 				<Input label='Alias (optional)' param='alias' value={alias ?? ''} onChange={this.onChangeConfig} />

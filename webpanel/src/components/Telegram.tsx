@@ -92,7 +92,7 @@ export default class Telegram extends Component<TelegramProps> {
             </p>);
         }
         return (<div>
-            <Input label='Token' param='token' value={this.props.data.token} onChange={this.onChangeConfig} />
+            <Input private label='Token' param='token' value={this.props.data.token} onChange={this.onChangeConfig} />
             <ListInputs
                 list={this.props.data.chats}
                 btnText={'Add new chat id'}
@@ -110,7 +110,7 @@ export default class Telegram extends Component<TelegramProps> {
                 <Button
                     variant="danger"
                     size="sm"
-                    onClick={() => prompt('Do you want to delete the telegram bot?') && this.props.set()}
+                    onClick={() => window.confirm('Do you want to delete the telegram bot?') && this.props.set()}
                 >Delete bot</Button>
             </p>
         </div>);
