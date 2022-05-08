@@ -23,8 +23,8 @@ export default function Input<K extends string> (props: InputProps<K>) {
 				placeholder="Empty"
 				type={isShowed ? 'text' : 'password'}
 				aria-label={props.label}
-				defaultValue={props.value}
-				onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+				value={props.value}
+				onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 					props.onChange(props.param, e.target.value);
 				}}
 		/>
@@ -35,8 +35,8 @@ export default function Input<K extends string> (props: InputProps<K>) {
 		<FormControl
       		placeholder="Empty"
       		aria-label={props.label}
-			defaultValue={props.value}
-			onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+			value={props.value}
+			onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 				props.onChange(props.param, e.target.value);
 			}}
     />
