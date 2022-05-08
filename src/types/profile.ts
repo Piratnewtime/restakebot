@@ -9,17 +9,28 @@ export type Profile = {
 	telegram?: TelegramConfig
 }
 
-export type Wallet = {
+export type WalletProps = {
+	network: string
+}
+
+export type Wallet = WalletProps & {
 	id?: string,
-	network: string,
 	config: Config,
 	triggers: Coin[],
 	interval?: number
+}
+
+export type WalletDefaultConfigs = {
+	network: string,
+	host: string,
+	gasPrice: number,
+	prefix: string,
+	nativeDenom: string
 }
 
 export type App = {
 	app: string,
 	alias?: string,
 	wallets: string[],
-	params: unknown
+	params: any
 }

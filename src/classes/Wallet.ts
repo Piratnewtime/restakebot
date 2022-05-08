@@ -4,6 +4,13 @@ import Secret from "./protection/Secret";
 import { BuildedTx } from "../types/BuildedTx";
 import { NetworkLinks } from "./Notice";
 
+export type DefaultConfig = {
+	host: string,
+	gasPrice: number,
+	prefix: string,
+	nativeDenom: string
+}
+
 export interface IWallet {
 	w: Profile.Wallet
 	
@@ -26,6 +33,8 @@ export interface IWallet {
 
 export interface IWalletConstructable extends IWallet {
 	new (wallet: Profile.Wallet, secret: Secret): IWallet
+
+	defaultConfig (): DefaultConfig
 }
 
 export default class Wallet {
