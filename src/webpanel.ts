@@ -35,7 +35,7 @@ app.set('port', process.env.PORT || 34567);
 
 app.disable('x-powered-by');
 
-app.use(express.static('webpanel/build'));
+app.use(express.static(__dirname + '/../webpanel/build'));
 
 app.use(express.json());
 
