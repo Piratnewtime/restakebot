@@ -1,8 +1,8 @@
 export type Config = {
 	host: string,
 	gasPrice: number,
-	nativeDenom: string,
-	address: string,
+	address?: string,
+	alias?: string,
 	key: {
 		type: string,
 		value: string

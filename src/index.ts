@@ -6,9 +6,12 @@ import Secret from "./classes/protection/Secret";
 import Password from "./classes/protection/Password";
 import Notice, { NoticeStatus } from "./classes/Notice";
 
-import * as modules from "./classes/wallets";
-import IWallet from "./classes/wallets/IWallet";
+import networks from "./classes/wallets";
+import apps from "./classes/apps";
+import { IWallet } from "./classes/Wallet";
+import { MaskAddress } from "./classes/Address";
 import { Profile } from "./types/Profile";
+import { AppWalletsAccess } from "./classes/App";
 
 let file = process.argv[2];
 if (!file) {
@@ -46,61 +49,62 @@ if (profileData.telegram?.token && profileData.telegram.chats.length) {
 }
 
 const wallets: Array<IWallet> = [];
+const wallets_ids: Map<string, IWallet> = new Map();
 const altered_wallets: Array<IWallet> = [];
 const notices: Map<IWallet, Notice> = new Map();
 
 profileData.wallets.forEach((w, index) => {
+	w.network = w.network.toLowerCase();
+
+	if (!(w.network in networks)) {
+		console.error(`Network ${w.network} is not supported yet`);
+		return;
+	}
+
 	const secret = new Secret(w.config.key.value, password);
 
 	if (!secret.checkKey()) {
-		console.error(clc.red(`Your ${w.network} wallet ${w.config.address} has incorrect key, please check your password`));
+		console.error(clc.red(`Your ${w.network} wallet #${index} has incorrect key, please check your password`));
 		process.exit(1);
 	}
 
-	let wallet: IWallet;
-	switch (w.network) {
-		case 'cosmos':
-		case 'secret':
-		case 'akash':
-		case 'band':
-		case 'comdex':
-			wallet = new modules.CosmosV1(w, secret);
-			break;
-		case 'osmosis':
-		case 'kava':
-			wallet = new modules.Osmosis(w, secret);
-			break;
-		case 'bsc_xct':
-			wallet = new modules.Bsc_xct(w, secret);
-			break;
-		case 'bsc_xct_team':
-			wallet = new modules.Bsc_xct_team(w, secret);
-			break;
-		case 'bsc_xct_autostake':
-			wallet = new modules.Bsc_xct_autostake(w, secret);
-			break;
-		default:
-			return;
+	const Module = networks[w.network];
+	const wallet = new Module(w, secret);
+	if (w.config.address && w.config.address != wallet.getAddress()) {
+		console.error(clc.red(`Address "${w.config.address}" is not correct, real is "${MaskAddress(wallet.getAddress())}"`));
+		process.exit(1);
 	}
 
-	if (w.interval) {
-		altered_wallets.push(wallet);
-		setInterval(() => { processWallet(wallet).catch(error => catchedError(wallet, error)) }, w.interval * 1000);
-	} else {
-		wallets.push(wallet);
-	}
-	
-	for (const trigger of w.triggers) {
-		wallet.addTrigger(parseFloat(trigger.amount), trigger.denom);
+	if (w.triggers.length) {
+
+		for (const trigger of w.triggers) {
+			wallet.addTrigger(parseFloat(trigger.amount), trigger.denom);
+		}
+
+		if (w.interval) {
+			altered_wallets.push(wallet);
+			setInterval(() => { processWallet(wallet).catch(error => catchedError(wallet, error)) }, w.interval * 1000);
+		} else {
+			wallets.push(wallet);
+		}
+		
 	}
 
-	console.log(clc.bgWhite(clc.black(` ${index + 1}) Added ${w.network} wallet ${w.config.address} `)));
+	if (w.id) {
+		if (wallets_ids.has(w.id)) {
+			console.error(clc.red(`Duplicate wallet ID "${w.id}"!`));
+			process.exit(1);
+		}
+		wallets_ids.set(w.id, wallet);
+	}
+
+	console.log(clc.bgWhite(clc.black(` ${index + 1}) Added ${w.network} wallet ${wallet.getPublicName()} `)));
 });
 
 const wTab = '      ';
 
 async function processWallet(wallet: IWallet): Promise<void> {
-	console.log('Check ' + clc.blue(wallet.address), new Date().toISOString());
+	console.log('Check ' + clc.blue(wallet.getPublicName()), new Date().toISOString());
 	const allRewards = await wallet.rewards();
 	const rewards = wallet.filterRewards(allRewards);
 	if (rewards.length) {
@@ -109,7 +113,7 @@ async function processWallet(wallet: IWallet): Promise<void> {
 
 		let notice: Notice | null = null;
 		if (bot) {
-			notice = new Notice(bot, profileData.telegram?.chats, wallet.w, summaryList);
+			notice = new Notice(bot, profileData.telegram?.chats, wallet, summaryList);
 			notices.set(wallet, notice);
 		}
 		if (notice) await notice.send();
@@ -154,7 +158,7 @@ async function processWallet(wallet: IWallet): Promise<void> {
 	} else {
 		console.info(wTab + 'No rewards');
 	}
-	console.log(wTab + clc.italic('Done ' + clc.blueBright(wallet.address)), clc.italic(new Date().toISOString()));
+	console.log(wTab + clc.italic('Done ' + clc.blueBright(wallet.getPublicName())), clc.italic(new Date().toISOString()));
 	notices.delete(wallet);
 }
 
@@ -166,18 +170,50 @@ async function main(): Promise<void> {
 	if (altered_wallets.length) altered_wallets.length = 0;
 }
 
-main();
+/** Main start */
+main().then(() => {
+
+	/** Start apps */
+	if (profileData.apps?.length) {
+		profileData.apps.forEach(({ app, alias, wallets, params }, index) => {
+			if (!(app in apps)) {
+				console.warn(clc.red(`Application "${app}" [${index}] does not exist!`));
+				return;
+			}
+			if (wallets.filter(wid => wallets_ids.has(wid)).length != wallets.length) {
+				console.warn(clc.red(`Application "${app}" [${index}] has missed wallets id!`));
+				return;
+			}
+			const publicAppName = app.toUpperCase() + (typeof alias == 'string' && alias ? ` [${alias}]` : '');
+			const noticeAppName = app.toUpperCase() + (typeof alias == 'string' && alias ? `_${alias.replace(/\s/g, '_')}` : '');
+			try {
+				const appInstance = new apps[app](new AppWalletsAccess(wallets_ids, wallets), params);
+				appInstance.setLogDecorator(() => ` ${new Date().toISOString()} | ${publicAppName} `);
+				if (bot) appInstance.setNoticeProvider(function CreateNotice (wallet_id, rewards) {
+					const wallet = wallets_ids.get(wallet_id)!;
+					return new Notice(bot!, profileData.telegram?.chats, wallet, rewards, noticeAppName);
+				});
+				console.log(clc.bgYellowBright(clc.black(` ${index+1}) Start application ${publicAppName} `)));
+				appInstance.start().catch(err => console.error(clc.bgRed(clc.black(` Start of application "${publicAppName}" has failed!`)), err));
+			} catch (e) {
+				console.error(clc.bgRed(clc.black(` Application "${publicAppName}" [${index}] has failed! `)));
+				console.error(e);
+			}
+		})
+	}
+
+});
 
 setInterval(main, profileData.interval * 1000);
 
 function catchedError(wallet: IWallet, error: unknown): void {
-	console.error(wTab + clc.bgRed(clc.black(` Wallet ${wallet.address} has failed! `)));
+	console.error(wTab + clc.bgRed(clc.black(` Wallet ${wallet.getPublicName()} has failed! `)));
 	console.error(error);
 	const notice = notices.get(wallet);
 	if (notice) {
 		notice.setError('' + error).send();
 		notices.delete(wallet);
 	} else if (bot) {
-		new Notice(bot, profileData.telegram?.chats, wallet.w, []).setError('' + error).send();
+		new Notice(bot, profileData.telegram?.chats, wallet, []).setError('' + error).send();
 	}
 }

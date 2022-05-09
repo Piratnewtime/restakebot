@@ -72,7 +72,6 @@ while (true) {
 		config: {
 			host: preset.host,
 			gasPrice: preset.gasPrice,
-			nativeDenom: preset.nativeDenom,
 			address: '',
 			key: {
 				type: 'privateKey',
