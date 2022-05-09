@@ -1,7 +1,12 @@
 name: Publish to NPM
+
 on:
   release:
+    branches:
+      - main
+      - v0.2-deploy
     types: [created]
+
 jobs:
   build:
     runs-on: ubuntu-latest
