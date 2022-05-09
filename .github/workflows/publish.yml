@@ -19,7 +19,7 @@ jobs:
           node-version: '15.x'
           registry-url: 'https://registry.npmjs.org'
       - name: Install dependencies 🔗
-        run: npm i
+        run: npm i --legacy-peer-deps
       - name: Build bot 🔧
         run: npx tsc
       - name: Build webpanel 🔧
