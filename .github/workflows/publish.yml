@@ -1,9 +1,9 @@
 name: Publish to NPM
 
 on:
-  push:
-    branches:
-     - main
+#  push:
+#    branches:
+#     - main
   release:
     types: [created]
 
@@ -23,7 +23,7 @@ jobs:
       - name: Build bot 🔧
         run: npx tsc
       - name: Build webpanel 🔧
-        run: cd webpanel && npm i --legacy-peer-deps && npm run build
+        run: cd webpanel && npm run build
       - name: Publish package on NPM 📦
         run: npm publish
         env:
