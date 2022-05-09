@@ -35,7 +35,7 @@ app.set('port', process.env.PORT || 34567);
 
 app.disable('x-powered-by');
 
-app.use(express.static('webpanel/build'));
+app.use(express.static(__dirname + '/../webpanel/build'));
 
 app.use(express.json());
 
@@ -87,7 +87,7 @@ app.post('/tg', (req, res) => {
 const server = app.listen(app.get('port'), function () {
 	const url = 'http://localhost:' + app.get('port');
 	console.log('Express server listening on ' + url);
-	require('child_process').spawn('explorer', [ url ]);
+	require('child_process').spawn('explorer', [ url ]).on('error', () => {});
 });
 
 const shutdown = () => {
