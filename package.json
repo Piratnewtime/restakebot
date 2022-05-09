@@ -1,7 +1,7 @@
 {
   "name": "restakebot",
   "preferGlobal": true,
-  "version": "0.2.0-beta",
+  "version": "0.2.0-beta.2",
   "engines": {
     "node": ">=15.3.0"
   },
@@ -25,7 +25,6 @@
     "restakebot": "bin/restakebot"
   },
   "dependencies": {
-    "restakebot-webpanel": "file:webpanel",
     "@bandprotocol/bandchain.js": "^2.0.3",
     "ansi-styles": "^3.2.1",
     "argparse": "^1.0.10",
