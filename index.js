@@ -23,6 +23,11 @@ switch (process.argv[2]) {
 	case 'tg':
 		require('./dist/connect_tg');
 		break;
+	case 'version':
+	case 'ver':
+	case '-v':
+		require('./version');
+		break;
 	default:
 		require('./dist/index');
 		break;
