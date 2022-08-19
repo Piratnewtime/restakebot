@@ -16,7 +16,7 @@ export default class Osmosis extends Proto {
 	static defaultConfig (): DefaultConfig {
 		return {
 			host: 'https://lcd-osmosis.cosmostation.io/',
-			gasPrice: 0,
+			gasPrice: 0.00025,
 			prefix: 'osmo',
 			nativeDenom: 'uosmo'
 		}
