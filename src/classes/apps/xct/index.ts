@@ -33,13 +33,6 @@ type Tx = {
 	hardfork?: string;
 }
 
-type ProcessOptions = {
-	wallet: AppWallet,
-	contract: Contract,
-	data: string,
-	rewards: string[]
-};
-
 export default class Xct extends App implements IApp {
 	private wallets: AppWallet[];
 	private web3: Web3;
@@ -176,7 +169,7 @@ export default class Xct extends App implements IApp {
 			chainId
 		};
 		
-		const simulated_gas = await wallet.simulateTransaction(tx);
+		const simulated_gas = await wallet.simulateTransaction({ ...tx, chainId: this.web3.utils.toHex(chainId) });
 		tx.gas = new BigNumber(simulated_gas).times(1.3).toFixed(0);
 
 		const signedTx = await wallet.signTransaction(tx);
