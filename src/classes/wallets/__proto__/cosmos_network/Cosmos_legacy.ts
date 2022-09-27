@@ -82,10 +82,12 @@ export default class Cosmos_legacy extends Wallet implements IWallet {
 		const summary: { [denom: string]: BigNumber } = {};
 		rewards.forEach(pack => {
 			// withdraw
-			msgs.push(new MsgWithdrawDelegatorReward(
-				this.getAddress(),
-				pack.validator_address,
-			));
+			if (this.target && this.target !== pack.validator_address) {
+				msgs.push(new MsgWithdrawDelegatorReward(
+					this.getAddress(),
+					pack.validator_address,
+				));
+			}
 
 			// stake to the same validator
 			pack.reward.forEach(_ => {
@@ -158,9 +160,10 @@ export default class Cosmos_legacy extends Wallet implements IWallet {
 			const coin: Coin | undefined = msg.getAmount();
 			if (!coin) throw 'Incorrect coint to stake';
 			const denom = coin.getDenom();
-			if (denom != this.nativeDenom) continue;
+			if (denom !== this.nativeDenom) continue;
 			let amount = parseFloat(coin.getAmount() || '0');
 			if (!amount) throw 'Incorrect amount to stake';
+			if (amount <= parseFloat(_feeAmount)) continue;
 			coin.setAmount(new BigNumber(amount).minus(_feeAmount).toFixed(0));
 			break;
 		}
