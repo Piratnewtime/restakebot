@@ -8,7 +8,7 @@ type preset = {
 
 const presets: preset = {
 	cosmos: {
-		host: 'https://lcd-cosmos.cosmostation.io',
+		host: 'https://rest.cosmos.directory/cosmoshub',
 		gasPrice: 0.025,
 		nativeDenom: 'uatom',
 	},
@@ -28,14 +28,14 @@ const presets: preset = {
 		nativeDenom: 'ukava',
 	},
 	osmosis: {
-		host: 'https://lcd.osmosis.zone',
+		host: 'https://lcd-osmosis.cosmostation.io',
 		gasPrice: 0.01,
 		nativeDenom: 'uosmo',
 	},
 	comdex: {
 		host: 'https://lcd-comdex.cosmostation.io',
 		gasPrice: 0.01,
-		nativeDenom: 'uosmo',
+		nativeDenom: 'ucmdx',
 	},
 	bsc_xct: {
 		host: 'https://bsc-dataseed.binance.org',

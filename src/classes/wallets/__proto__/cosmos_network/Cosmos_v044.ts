@@ -9,10 +9,10 @@ export default class Cosmos_v044 extends Cosmos_legacy {
 
 	async balance (): Promise<number> {
 		const data = (await axios.get(`${this.host}/cosmos/bank/v1beta1/balances/${this.getAddress()}?by_denom=${this.nativeDenom}`, { timeout: 20000 })).data;
-    if (data.balances?.length) {
-      return parseInt(data.balances[0].amount) / 1e6;
-    }
-    return 0;
+		if (data.balances?.length) {
+			return parseInt(data.balances[0].amount) / 1e6;
+		}
+		return 0;
 	}
 
 	async rewards (): Promise<CosmosRewards> {
