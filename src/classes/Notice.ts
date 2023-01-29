@@ -1,3 +1,4 @@
+import BigNumber from "bignumber.js";
 import TelegramBot, { InlineKeyboardMarkup } from "node-telegram-bot-api";
 
 import { IWallet } from "./Wallet";
@@ -16,11 +17,13 @@ export default class Notice {
 	private message_ids: number[] = []
 	public status: NoticeStatus = NoticeStatus.Initialised
 	public balance: number = -1
+	public staked: number = -1
 	public gas: number = -1
 	public fee: number = 0
 	public error: string = ''
 	public txhash: string = ''
 	public pending_time: number = 0
+	public price: number | null = null
 	private links: NetworkLinks
 
 	constructor(
@@ -38,8 +41,19 @@ export default class Notice {
 		return this;
 	}
 
-	setBalance(amount: number) {
+	setPrice(price: number) {
+		this.price = price;
+		return this;
+	}
+
+	setBalance(amount: number, stakedAmount?: number) {
 		this.balance = amount;
+		if (stakedAmount) this.staked = stakedAmount;
+		return this;
+	}
+
+	setStaked(amount: number) {
+		this.staked = amount;
 		return this;
 	}
 
@@ -86,10 +100,20 @@ export default class Notice {
 				text += '🔥 ';
 				break;
 		}
-		text += `<b>#${this.wallet.w.network.toUpperCase()} #${this.status.toUpperCase()}</b>\n`;
+		text += `<b>#${this.wallet.w.network.toUpperCase()} #${this.status.toUpperCase()}${this.price ? '    💲' + this.price : ''}</b>\n`;
 		if (this.app_name) text += `<b>App: #${this.app_name}</b>\n`;
 		text += `<tg-spoiler><b>${this.wallet.getAddress()}</b></tg-spoiler>\n`;
-		if (this.balance != -1) text += `Balance: ${this.balance}\n`;
+		if (this.balance != -1) {
+			const usdBalance = this.price ? `    <i>💲${new BigNumber(this.price).times(this.balance).toFixed(3)}</i>` : '';
+			text += `Balance: ${this.balance}${usdBalance}\n`;
+			if (this.staked > 0) {
+				const usdStaked = this.price ? `    <i>💲${new BigNumber(this.price).times(this.staked).toFixed(3)}</i>` : '';
+				text += `Staked: ${this.staked}${usdStaked}\n`;
+				const totalBalance = new BigNumber(this.staked).plus(this.balance).toString();
+				const usdTotal = this.price ? `    <i>💲${new BigNumber(this.price).times(totalBalance).toFixed(3)}</i>` : '';
+				text += `Total balance: ${totalBalance}${usdTotal}\n`;
+			}
+		}
 
 		if (this.rewards.length) {
 			text += '\n<b>Rewards:</b>\n';
@@ -98,7 +122,8 @@ export default class Notice {
 
 		if (this.status !== NoticeStatus.Initialised && this.gas != -1) {
 			text += '\n<b>Transaction:</b>\n';
-			text += `Fee: ${this.fee} (gas: ${this.gas})\n`;
+			const usdFee = this.price ? `    <i>💲${new BigNumber(this.price).times(this.fee).toFixed(3)}</i>` : '';
+			text += `Fee: ${this.fee} (gas: ${this.gas})${usdFee}\n`;
 			if (this.txhash) text += `Hash: <tg-spoiler><b>${this.txhash}</b></tg-spoiler>\n`;
 			if (this.pending_time) text += `Pending time: 🕒 <b>${parseFloat((this.pending_time / 60000).toFixed(5))} min</b>`;
 		}

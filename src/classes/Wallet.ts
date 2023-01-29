@@ -3,6 +3,7 @@ import { Address, MaskAddress } from "./Address";
 import Secret from "./protection/Secret";
 import { BuildedTx } from "../types/BuildedTx";
 import { NetworkLinks } from "./Notice";
+import * as coingecko from "./Coingecko";
 
 export type DefaultConfig = {
 	host: string,
@@ -15,14 +16,17 @@ export interface IWallet {
 	w: Profile.Wallet
 	
 	getPublicLinks (): NetworkLinks
+	getCoingeckoId (): string
 	getAddress (): Address
 	getPublicName (): string
 	balance (): Promise<number>
+	staked (): Promise<number>
 	rewards (): Promise<unknown[]>
 	filterRewards (rewards: unknown[]): unknown[]
 	summaryRewards (rewards: unknown[]): Array<string>
 	addTrigger (amount: number, denom: string | null): this
 	setTargetValidator (address: string): void
+	getPrice (): Promise<number | null>
 
 	restakeRewards (rewards: any): Promise<BuildedTx | null>
 	simulateTransaction (tx: any): Promise<string>
@@ -46,13 +50,18 @@ export default class Wallet {
 
 	protected host: string
 	protected gasPrice: number
-	private address: Address | null = null;
-	protected nativeDenom: string = '';
+	private address: Address | null = null
+	protected nativeDenom: string = ''
+	protected coingeckoId: string = ''
 
 	constructor (public w: Profile.Wallet, protected secret: Secret) {
 		const config = w.config;
 		this.host = config.host;
 		this.gasPrice = config.gasPrice;
+	}
+
+	getCoingeckoId () {
+		return this.coingeckoId;
 	}
 
 	getAddress () {
@@ -78,7 +87,14 @@ export default class Wallet {
 		return this;
 	}
 
-	setTargetValidator (address: string): void {
+	setTargetValidator (address: string) {
 		this.target = address;
+	}
+
+	async getPrice (): Promise<number | null> {
+		if (this.coingeckoId) {
+			return await coingecko.getPrice(this.coingeckoId);
+		}
+		return null;
 	}
 }
