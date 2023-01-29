@@ -28,7 +28,7 @@ const presets: preset = {
 		nativeDenom: 'ukava',
 	},
 	osmosis: {
-		host: 'https://lcd-osmosis.cosmostation.io',
+		host: 'https://lcd.osmosis.zone',
 		gasPrice: 0.01,
 		nativeDenom: 'uosmo',
 	},
