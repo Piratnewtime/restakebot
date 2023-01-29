@@ -9,7 +9,7 @@ type preset = {
 const presets: preset = {
 	cosmos: {
 		host: 'https://lcd-cosmos.cosmostation.io',
-		gasPrice: 0.01,
+		gasPrice: 0.025,
 		nativeDenom: 'uatom',
 	},
 	secret: {
@@ -28,7 +28,7 @@ const presets: preset = {
 		nativeDenom: 'ukava',
 	},
 	osmosis: {
-		host: 'https://lcd-osmosis.cosmostation.io',
+		host: 'https://lcd.osmosis.zone',
 		gasPrice: 0.01,
 		nativeDenom: 'uosmo',
 	},
