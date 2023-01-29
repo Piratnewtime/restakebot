@@ -9,7 +9,7 @@ type preset = {
 const presets: preset = {
 	cosmos: {
 		host: 'https://rest.cosmos.directory/cosmoshub',
-		gasPrice: 0.025,
+		gasPrice: 0.026,
 		nativeDenom: 'uatom',
 	},
 	secret: {

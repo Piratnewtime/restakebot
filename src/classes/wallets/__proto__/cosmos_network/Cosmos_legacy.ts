@@ -44,6 +44,10 @@ export default class Cosmos_legacy extends Wallet implements IWallet {
 		return amount;
 	}
 
+	async staked (): Promise<number> {
+		return 0;
+	}
+
 	async rewards (): Promise<CosmosRewards> {
 		let list: CosmosRewards | null = (await axios.get(`${this.host}/distribution/delegators/${this.getAddress()}/rewards`, { timeout: 20000 })).data.result.rewards;
 		if (list === null) return [];

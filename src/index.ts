@@ -112,9 +112,14 @@ async function processWallet(wallet: IWallet): Promise<void> {
 		const summaryList = wallet.summaryRewards(rewards);
 
 		let notice: Notice | null = null;
+		let price: number | null = null;
 		if (bot) {
 			notice = new Notice(bot, profileData.telegram?.chats, wallet, summaryList);
 			notices.set(wallet, notice);
+			try {
+				price = await wallet.getPrice();
+				if (price) notice.setPrice(price);
+			} catch {}
 		}
 		if (notice) await notice.send();
 
@@ -124,8 +129,11 @@ async function processWallet(wallet: IWallet): Promise<void> {
 		if (data != null) {
 			console.info(wTab + clc.greenBright(`Build restake is ready (Gas: ${data.gas}, Fee: ${data.fee}) -> send transaction`));
 			if (notice) await notice.setGas(data.gas).setFee(data.fee).setStatus(NoticeStatus.Builded).send();
-			const balance = await wallet.balance();
-			if (notice) notice.setBalance(balance);
+			const [ balance, staked ] = await Promise.all([
+				wallet.balance(),
+				wallet.staked()
+			]);
+			if (notice) notice.setBalance(balance, staked);
 			if (balance >= data.fee) {
 				//throw new Error('test error');
 				const hash = await wallet.sendTx(data.tx);

@@ -3,6 +3,7 @@ import clc from "cli-color";
 import Web3 from "web3";
 import { Contract } from 'web3-eth-contract';
 import { BuildedTx } from "../../../types/BuildedTx";
+import { getPrice } from "../../Coingecko";
 
 import App, { AppWallet, AppWalletsAccess, IApp, AppDescription } from "../../App";
 
@@ -78,9 +79,14 @@ export default class Xct extends App implements IApp {
 		}
 	}
 
+	applyPrice (price: number | null, amount: number | BigNumber): string {
+		if (!price) return '';
+		return '    <i>💲' + new BigNumber(price).times(amount).toFixed(3) + '</i>';
+	}
+
 	async start (): Promise<never> {
 		while (true) {
-
+			const price = await getPrice('citadel-one');
 			for (const wallet of this.wallets) {
 
 				const owner = wallet.getAddress();
@@ -94,7 +100,7 @@ export default class Xct extends App implements IApp {
 							this.log(clc.greenBright(`Native staking is processing! ${rewards} XCT (limit ${this.params.trigger})`));
 							await this.processingTransaction({
 								wallet,
-								rewards: [`Native staking - ${rewards} XCT`],
+								rewards: [`Native staking - ${rewards} XCT${this.applyPrice(price, rewards)}`],
 								buildTx: () => this.buildTx(wallet, this.TokenLocker, this.TokenLocker.methods.restake().encodeABI())
 							});
 						} else {
@@ -116,7 +122,7 @@ export default class Xct extends App implements IApp {
 								this.log(clc.greenBright(`Withdraw of ${name} rewards are processing! ${rewards} XCT (limit ${limit})`));
 								const res = await this.processingTransaction({
 									wallet,
-									rewards: [`Withdraw ${name} - ${rewards} XCT`],
+									rewards: [`Withdraw ${name} - ${rewards} XCT${this.applyPrice(price, rewards)}`],
 									buildTx: () => this.buildTx(wallet, contract, contract.methods.claim().encodeABI())
 								});
 								if (res) {
@@ -137,7 +143,7 @@ export default class Xct extends App implements IApp {
 						this.log(clc.greenBright(`Staking rewards are processing! ${totalClaimed} XCT`));
 						await this.processingTransaction({
 							wallet,
-							rewards: [`Stake after withdrawing - ${totalClaimed} XCT`],
+							rewards: [`Stake after withdrawing - ${totalClaimed} XCT${this.applyPrice(price, totalClaimed)}`],
 							buildTx: () => this.buildTx(wallet, this.TokenLocker, this.TokenLocker.methods.stake(totalClaimed.times(1e6).toFixed(0)).encodeABI())
 						});
 					}

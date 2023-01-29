@@ -2,6 +2,7 @@ import clc from "cli-color";
 import { BuildedTx } from "../types/BuildedTx";
 import Notice, { NoticeStatus } from "./Notice";
 import { IWallet } from "./Wallet";
+import { getPrice } from "./Coingecko";
 
 type NoticeProvider = (wallet_id: string, rewards: string[]) => Notice;
 type LogDecorator = () => string;
@@ -116,7 +117,16 @@ export default class App {
 	}: ProcessOptions): Promise<boolean> {
 		let notice: Notice | null = null;
 		if (this.noticeProvider) notice = this.noticeProvider(wallet.getId(), rewards);
-		if (notice) await notice.send();
+		if (notice) {
+			await notice.send();
+			const coingeckoId = wallet.getCoingeckoId();
+			if (coingeckoId) {
+				try {
+					const price = await getPrice(coingeckoId);
+					if (price) notice.setPrice(price);
+				} catch {}
+			}
+		}
 
 		try {
 
@@ -178,6 +188,10 @@ export class AppWallet {
 
 	getConfig () {
 		return { ...this.wallet.w.config, key: null };
+	}
+
+	getCoingeckoId () {
+		return this.wallet.getCoingeckoId();
 	}
 
 	getAddress () {

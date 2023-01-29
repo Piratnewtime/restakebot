@@ -35,6 +35,10 @@ export class Ethereum_legacy extends Wallet implements IWallet {
 		return new BigNumber(await this.web3.eth.getBalance(this.getAddress(), 'pending')).div(1e18).toNumber();
 	}
 
+	async staked (): Promise<number> {
+		return 0;
+	}
+
 	async rewards (): Promise<never[]> {
 		return [];
 	}
