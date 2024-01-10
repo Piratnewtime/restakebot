@@ -1,6 +1,6 @@
 import { NetworkLinks } from "../Notice";
 import { DefaultConfig } from "../Wallet";
-import Proto from "./__proto__/cosmos_network/Cosmos_v044";
+import Proto from "./__proto__/cosmos_network/Cosmos_v046";
 
 export default class Osmosis extends Proto {
 	protected prefix: string = 'osmo';
