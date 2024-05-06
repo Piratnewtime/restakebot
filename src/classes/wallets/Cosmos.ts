@@ -1,5 +1,5 @@
 import { DefaultConfig } from "../Wallet";
-import Proto from "./__proto__/cosmos_network/Cosmos_v044";
+import Proto from "./__proto__/cosmos_network/Cosmos_v046";
 
 export default class Cosmos extends Proto {
 	protected coingeckoId: string = 'cosmos';
