@@ -304,6 +304,7 @@ module.exports = function (webpackEnv) {
         util: require.resolve("util"),
         buffer: require.resolve("buffer"),
         assert: require.resolve("assert"),
+        vm: require.resolve("vm-browserify")
       },
       // https://github.com/facebook/create-react-app/issues/253
       modules: ['node_modules', paths.appNodeModules].concat(
